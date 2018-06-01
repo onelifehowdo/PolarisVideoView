@@ -40,7 +40,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 
     private String url;
     private String videoPath = "/web/video/";
-    private String imagePath = "/web/image/";
+    private String imagePath = "/web/image/videoimage/";
     private String doorImagePath = "/web/image/doorimage/";
     private String jsonPath = "/web/js/";
     private List<String> doorList = new ArrayList();
