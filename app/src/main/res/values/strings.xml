@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Polaris</string>
+    <string name="title_activity_action">ActionActivity</string>
 </resources>

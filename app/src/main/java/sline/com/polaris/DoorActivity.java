@@ -5,15 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
@@ -49,7 +47,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView DoorImage, switcher, delCache, index, cloud, setting, updata, shutdown, restart, cancel, returndata;
     private RelativeLayout firstLayout, doorLayout;
     private LinearLayout toolsBar;
-    private Animation animationIcon,  animationOpen, animationClose,
+    private Animation animationIcon, animationOpen, animationClose,
             animationCloud, animationSettingOpen, animationSettingClose, animationOpenDoor;
     private EditText ip;
     private int DoorImageSize, listPort, bitMapPort = 1, downPort = 0, flag = 2;
@@ -63,6 +61,10 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
+                case 404: {
+                    Toast.makeText(DoorActivity.this, "清除成功", Toast.LENGTH_SHORT).show();
+                    break;
+                }
                 case 0: {
                     Toast.makeText(DoorActivity.this, "删除" + msg.arg1 + "个缓存文件", Toast.LENGTH_SHORT).show();
                     break;
@@ -287,38 +289,45 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 } else if (temp.equals("Not Found") || temp.equals("Linking...") || temp.equals("")) {
                     break;
                 } else {
+                    Intent intent = new Intent(DoorActivity.this, WebPage.class);
+                    intent.putExtra("url", "https://m.baidu.com/s?from=1086k&tn=baidulocal&word=" + ip.getText().toString());
                     ip.setText("");
-                    Toast.makeText(this, "IP格式不正确", Toast.LENGTH_SHORT).show();
+                    startActivity(intent);
                 }
                 break;
             }
             case R.id.updata: {
-                Intent intent = new Intent(DoorActivity.this, WebPage.class);
-                intent.putExtra("url", "http://" + url + "/web/webpage/action.php?chose=updata");
+                Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
+                intent.putExtra("url", url);
+                intent.putExtra("chose", "updata");
                 startActivity(intent);
                 break;
             }
             case R.id.shutdown: {
-                Intent intent = new Intent(DoorActivity.this, WebPage.class);
-                intent.putExtra("url", "http://" + url + "/web/webpage/action.php?chose=shutdown");
+                Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
+                intent.putExtra("url", url);
+                intent.putExtra("chose", "shutdown");
                 startActivity(intent);
                 break;
             }
             case R.id.restart: {
-                Intent intent = new Intent(DoorActivity.this, WebPage.class);
-                intent.putExtra("url", "http://" + url + "/web/webpage/action.php?chose=restart");
+                Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
+                intent.putExtra("url", url);
+                intent.putExtra("chose", "restart");
                 startActivity(intent);
                 break;
             }
             case R.id.cancel: {
-                Intent intent = new Intent(DoorActivity.this, WebPage.class);
-                intent.putExtra("url", "http://" + url + "/web/webpage/action.php?chose=cancel");
+                Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
+                intent.putExtra("url", url);
+                intent.putExtra("chose", "cancel");
                 startActivity(intent);
                 break;
             }
             case R.id.returndata: {
-                Intent intent = new Intent(DoorActivity.this, WebPage.class);
-                intent.putExtra("url", "http://" + url + "/web/webpage/action.php?chose=return");
+                Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
+                intent.putExtra("url", url);
+                intent.putExtra("chose", "return");
                 startActivity(intent);
                 break;
             }
@@ -359,15 +368,21 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         private void delcache() {
-            File cache = new File(getCacheDir().toString() + "/image_manager_disk_cache");
-            String[] list = cache.list();
-            for (int i = 0; i < list.length; i++) {
-                new File(getCacheDir().toString() + "/image_manager_disk_cache/" + list[i].toString()).delete();
+            try {
+                File cache = new File( "/data/data/sline.com.polaris/cache/image_manager_disk_cache");
+                String[] list = cache.list();
+                for (int i = 0; i < list.length; i++) {
+                    new File(getCacheDir().toString() + "/image_manager_disk_cache/" + list[i].toString()).delete();
+                }
+                Message message = Message.obtain();
+                message.what = 0;
+                message.arg1 = list.length;
+                handler.sendMessage(message);
+            }catch (NullPointerException e){
+                Message message = Message.obtain();
+                message.what = 404;
+                handler.sendMessage(message);
             }
-            Message message = Message.obtain();
-            message.what = 0;
-            message.arg1 = list.length;
-            handler.sendMessage(message);
         }
     }//删除缓存
 

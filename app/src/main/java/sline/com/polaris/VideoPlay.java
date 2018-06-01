@@ -1,14 +1,13 @@
 package sline.com.polaris;
 
-import android.media.MediaPlayer;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.VideoView;
 import android.widget.MediaController;
+import android.widget.VideoView;
 
 public class VideoPlay extends AppCompatActivity {
     private String url,name,videoPath;
