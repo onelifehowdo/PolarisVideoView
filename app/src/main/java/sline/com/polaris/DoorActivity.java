@@ -369,7 +369,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 
         private void delcache() {
             try {
-                File cache = new File( "/data/data/sline.com.polaris/cache/image_manager_disk_cache");
+                File cache = new File( getCacheDir().toString()+"/image_manager_disk_cache");
                 String[] list = cache.list();
                 for (int i = 0; i < list.length; i++) {
                     new File(getCacheDir().toString() + "/image_manager_disk_cache/" + list[i].toString()).delete();
@@ -407,19 +407,19 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         private void getJson(String url) {
             List<String> jsonList = new ArrayList();
             String json = "";
-            InputStreamReader inputStream;
-            BufferedReader bufferedReader;
+            InputStreamReader inputStreamReadereader=null;
+            BufferedReader bufferedReader=null;
             URLConnection urlConnection;
             try {
                 urlConnection = new URL("http://" + url + jsonPath + "doorImage.json").openConnection();
                 urlConnection.setConnectTimeout(5000);
-                inputStream = new InputStreamReader(urlConnection.getInputStream(), "utf-8");
-                bufferedReader = new BufferedReader(inputStream);
+                inputStreamReadereader = new InputStreamReader(urlConnection.getInputStream(), "utf-8");
+                bufferedReader = new BufferedReader(inputStreamReadereader);
                 String line;
                 while ((line = bufferedReader.readLine()) != null) {
                     json += line;
                 }
-                inputStream.close();
+                inputStreamReadereader.close();
                 bufferedReader.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -427,6 +427,14 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 Message message = Message.obtain();
                 message.what = 2;
                 handler.sendMessage(message);
+            }finally {
+                if(inputStreamReadereader!=null||bufferedReader!=null)
+                    try {
+                        inputStreamReadereader.close();
+                        bufferedReader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
             }
 
             try {
