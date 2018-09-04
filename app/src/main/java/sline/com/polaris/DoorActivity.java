@@ -1,6 +1,7 @@
 package sline.com.polaris;
 
 import android.annotation.SuppressLint;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -8,8 +9,11 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
@@ -35,6 +39,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DoorActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener, View.OnTouchListener {
 
@@ -51,10 +59,13 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
             animationCloud, animationSettingOpen, animationSettingClose, animationOpenDoor;
     private EditText ip;
     private int DoorImageSize, listPort, bitMapPort = 1, downPort = 0, flag = 2;
-    private boolean jsonFlag = true;
+    private boolean jsonFlag = true,softInput=false;
 
-    private Bitmap[] bitMap = new Bitmap[8];
+    private Bitmap[] bitMap = new Bitmap[4];
     private boolean[] bitMapLock;
+    private long date,lastBackTime;
+    private Vibrator vibrator;
+
     @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
         @Override
@@ -63,6 +74,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
             switch (msg.what) {
                 case 404: {
                     Toast.makeText(DoorActivity.this, "清除成功", Toast.LENGTH_SHORT).show();
+
                     break;
                 }
                 case 0: {
@@ -74,7 +86,8 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                     DoorImageSize = ((List) msg.obj).size();
                     try {
                         for (int i = 0; i < bitMap.length; i++) {
-                            new DoorImageDown("http://" + url + doorImagePath + ((List) msg.obj).get(i).toString(), i).start();
+//                            new DoorImageDown("http://" + url + doorImagePath + ((List) msg.obj).get(i).toString(),i).start();
+                            new Thread(new DoorImageDown("http://" + url + doorImagePath + ((List) msg.obj).get(i).toString(), i)).start();
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -86,7 +99,8 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                         if (test()) {
                             DoorImage.setImageBitmap(bitMap[0]);
                             Log.i("Tag", "使用BitMap" + 0 + "  listPort指向" + listPort);
-                            switcher.setVisibility(View.VISIBLE);
+//                            switcher.setVisibility(View.VISIBLE);
+                            ip.setText("");
                             doorLayout.setVisibility(View.VISIBLE);
                             firstLayout.setVisibility(View.GONE);
                             break;
@@ -100,7 +114,10 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 }
                 case 2: {
-                    ip.setText("Not Found");
+                    if (ip.getText().toString().equals("Linking...")) {
+                        vibrator.vibrate(100);
+                        ip.setText("Not Found");
+                    }
                     break;
                 }
             }
@@ -108,10 +125,26 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     };
 
 
+//    @Override
+//    protected void onStop() { // 退出时清除缓存
+//        super.onStop();
+//        Log.i("tag","DoorActivity is stop");
+//        int oldPort=(bitMapPort+bitMap.length-1)%bitMap.length;
+//        for(int i=0;i<bitMap.length;i++){
+//            if(i!=oldPort){
+//                if(bitMap[i]!=null)
+//                    bitMap[i].recycle();
+//            }
+//        }
+//        Log.i("tag",oldPort+"未回收");
+//        System.gc();
+//    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dooractivity);
+        System.gc();
 
         animationOpen = AnimationUtils.loadAnimation(this, R.anim.toolsbaropen);
         animationClose = AnimationUtils.loadAnimation(this, R.anim.toolsbarclose);
@@ -142,6 +175,9 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         cancel = findViewById(R.id.cancel);
         returndata = findViewById(R.id.returndata);
         listPort = bitMap.length;
+        date = System.currentTimeMillis();
+        lastBackTime=date;
+        vibrator = (Vibrator) getSystemService(Service.VIBRATOR_SERVICE);
 
 
         ip.setLongClickable(false);
@@ -216,24 +252,28 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+
     ///////////////////////////////////////////////////////     点击事件      ///////////////////////////////////////
 
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.switcher: {
-                if (flag == 1) {
-                    setting.startAnimation(animationSettingClose);
-                    toolsBar.startAnimation(animationClose);
-                }
-                if (bitMapLock[bitMapPort]) {
-                    changeImage(bitMapPort, downPort);
-                    bitMapPort++;
-                    bitMapPort = bitMapPort % bitMap.length;
-                    downPort++;
-                    downPort = downPort % bitMap.length;
-                } else {
-                    Toast.makeText(DoorActivity.this, "正在加载", Toast.LENGTH_SHORT).show();
+                if ((System.currentTimeMillis() - date) > 600) {
+                    if (flag == 1) {
+                        setting.startAnimation(animationSettingClose);
+                        toolsBar.startAnimation(animationClose);
+                    }
+                    if (bitMapLock[bitMapPort]) {
+                        changeImage(bitMapPort, downPort);
+                        bitMapPort++;
+                        bitMapPort = bitMapPort % bitMap.length;
+                        downPort++;
+                        downPort = downPort % bitMap.length;
+                    } else {
+                        Toast.makeText(DoorActivity.this, "正在加载", Toast.LENGTH_SHORT).show();
+                    }
+                    date = System.currentTimeMillis();
                 }
                 break;
             }
@@ -241,6 +281,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 if (ip.getText().toString().equals("Not Found") || ip.getText().toString().equals("Linking...")) {
                     ip.setText("");
                 }
+                softInput=true;
                 break;
             }
             case R.id.setting: {
@@ -256,6 +297,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 
         }
     }
+
 
     @Override
     public boolean onLongClick(View view) {
@@ -279,16 +321,22 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.indexImage: {
-                String regex = "([1-9]|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])){3}:?\\d{0,4}";
                 String temp = ip.getText().toString();
-                if (temp.matches(regex)) {
-                    url = temp;
-                    DoorJson doorJson = new DoorJson(url);
-                    doorJson.start();
-                    ip.setText("Linking...");
-                } else if (temp.equals("Not Found") || temp.equals("Linking...") || temp.equals("")) {
+                if (temp.equals("Not Found") || temp.equals("Linking...") || temp.equals("")) {
                     break;
-                } else {
+                }
+                int flag=ip_test(temp);
+                if (flag== 0) {
+                    url = temp;
+                    new Thread(new DoorJson(url)).start();
+                    ip.setText("Linking...");
+                } else if (flag == 1) {
+                    Intent intent = new Intent(DoorActivity.this, WebPage.class);
+                    intent.putExtra("url", "http://"+ip.getText().toString());
+                    ip.setText("");
+                    startActivity(intent);
+                }
+                else if (flag == 2) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
                     intent.putExtra("url", "https://m.baidu.com/s?from=1086k&tn=baidulocal&word=" + ip.getText().toString());
                     ip.setText("");
@@ -336,12 +384,14 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         return true;
     }
 
+
     @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
         switch (view.getId()) {
             case R.id.indexImage: {
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(ip.getWindowToken(), 0);
+                softInput=false;
                 break;
             }
             case R.id.doorImage: {
@@ -357,6 +407,32 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         return false;
     }
 
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK &&(firstLayout.getVisibility()==View.GONE)) {
+            firstLayout.setVisibility(View.VISIBLE);
+            for(int i=0;i<bitMap.length;i++){
+                if(bitMap[i]!=null){
+                    bitMap[i].recycle();
+                    bitMap[i]=null;
+                }
+            }
+            System.gc();
+            listPort = bitMap.length;
+            bitMapPort=0;
+            doorLayout.setVisibility(View.GONE);
+            return true;
+        }
+        if(!softInput&&System.currentTimeMillis()-lastBackTime>1000){
+            lastBackTime=System.currentTimeMillis();
+            Toast toast=Toast.makeText(DoorActivity.this,"再按一次退出",Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER,0,0);
+            toast.show();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    内部类    ///////////////////////////
 
@@ -369,7 +445,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 
         private void delcache() {
             try {
-                File cache = new File( getCacheDir().toString()+"/image_manager_disk_cache");
+                File cache = new File(getCacheDir().toString() + "/image_manager_disk_cache");
                 String[] list = cache.list();
                 for (int i = 0; i < list.length; i++) {
                     new File(getCacheDir().toString() + "/image_manager_disk_cache/" + list[i].toString()).delete();
@@ -378,7 +454,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 message.what = 0;
                 message.arg1 = list.length;
                 handler.sendMessage(message);
-            }catch (NullPointerException e){
+            } catch (NullPointerException e) {
                 Message message = Message.obtain();
                 message.what = 404;
                 handler.sendMessage(message);
@@ -388,7 +464,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 
     //////////////////////////////////////////////    JSON下载     //////////////////////////////////////////////////////////
 
-    class DoorJson extends Thread {
+    class DoorJson implements Runnable {
 
 
         private String url;
@@ -407,30 +483,27 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         private void getJson(String url) {
             List<String> jsonList = new ArrayList();
             String json = "";
-            InputStreamReader inputStreamReadereader=null;
-            BufferedReader bufferedReader=null;
+            BufferedReader bufferedReader = null;
             URLConnection urlConnection;
             try {
+                Log.i("Tag", "json 下载测试");
                 urlConnection = new URL("http://" + url + jsonPath + "doorImage.json").openConnection();
                 urlConnection.setConnectTimeout(5000);
-                inputStreamReadereader = new InputStreamReader(urlConnection.getInputStream(), "utf-8");
-                bufferedReader = new BufferedReader(inputStreamReadereader);
+                bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
                 String line;
                 while ((line = bufferedReader.readLine()) != null) {
                     json += line;
                 }
-                inputStreamReadereader.close();
-                bufferedReader.close();
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.i("Tag", "网络失败");
                 Message message = Message.obtain();
                 message.what = 2;
                 handler.sendMessage(message);
-            }finally {
-                if(inputStreamReadereader!=null||bufferedReader!=null)
+                return;
+            } finally {
+                if (bufferedReader != null)
                     try {
-                        inputStreamReadereader.close();
                         bufferedReader.close();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -487,14 +560,15 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         listPort = listPort % DoorImageSize;
         DoorImage.setImageBitmap(bitMap[bitMapPort]);
         Log.i("Tag", "使用BitMap" + bitMapPort + "  listPort指向" + listPort);
-        new DoorImageDown("http://" + url + doorImagePath + doorList.get(listPort).toString(), downPort).start();
+        new Thread(new DoorImageDown("http://" + url + doorImagePath + doorList.get(listPort).toString(), downPort)).start();
     }
 
     ///////////////////////////////////////                  下载图片        //////////////////////////////////////////////////////////////
-    class DoorImageDown extends Thread {
+    class DoorImageDown implements Runnable {
 
         private String url;
         private int bitMapNum;
+
 
         public DoorImageDown() {
 
@@ -512,6 +586,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
             bitMap[bitMapNum] = null;
             bitMap[bitMapNum] = downImage();
             bitMapLock[bitMapNum] = true;
+
 
             Log.i("Tag", "Download bitMap" + bitMapNum + "  [" + url + "]");
         }
@@ -532,4 +607,19 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         }
 
     }
+
+    private int ip_test(String a) {
+        String regex_link = "(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(:([0-9]|[1-9]\\d{1,3}|[1-5]\\d{4}|6[0-4]\\d{4}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5]))?/";
+        String regex_ip = "(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(:([0-9]|[1-9]\\d{1,3}|[1-5]\\d{4}|6[0-4]\\d{4}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5]))?";
+        Pattern pattern=Pattern.compile(regex_link);
+        Matcher matcher=pattern.matcher(a);
+        if (a.matches(regex_ip))
+            return 0;
+        else if (matcher.lookingAt())
+            return 1;
+        else
+            return 2;
+    } // IP 状态测试
+
 }
+

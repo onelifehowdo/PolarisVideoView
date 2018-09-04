@@ -58,7 +58,6 @@
             android:layout_centerInParent="true"
             android:layout_alignParentBottom="true"
             android:src="@mipmap/icon"
-            android:visibility="gone"
             android:scaleType="centerCrop"/>
         <RelativeLayout
             android:id="@+id/toolsBarBody"

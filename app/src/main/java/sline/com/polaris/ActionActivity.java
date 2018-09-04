@@ -1,11 +1,13 @@
 package sline.com.polaris;
 
 import android.annotation.SuppressLint;
+import android.app.Service;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +36,7 @@ public class ActionActivity extends AppCompatActivity {
     private ListView listView;
     private ProgressBar wait;
     private MyAdapter myAdapter;
+    private Vibrator vibrator;
 
     @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
@@ -59,6 +62,7 @@ public class ActionActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_action);
+        vibrator = (Vibrator) getSystemService(Service.VIBRATOR_SERVICE);
         url = getIntent().getStringExtra("url");
         chose = getIntent().getStringExtra("chose");
         wait = findViewById(R.id.wait);
@@ -89,19 +93,18 @@ public class ActionActivity extends AppCompatActivity {
 
         private void getJson(String url, String chose) {
             String json = "";
-            InputStreamReader inputStreamReader=null;
             BufferedReader bufferedReader=null;
             URLConnection urlConnection;
             try {
                 urlConnection = new URL(url + chose).openConnection();
                 urlConnection.setConnectTimeout(5000);
-                inputStreamReader = new InputStreamReader(urlConnection.getInputStream(), "utf-8");
-                bufferedReader = new BufferedReader(inputStreamReader);
+//                inputStreamReader = new InputStreamReader(urlConnection.getInputStream(), "utf-8");
+                bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
                 String line;
                 while ((line = bufferedReader.readLine()) != null) {
                     json += line;
                 }
-                inputStreamReader.close();
+//                inputStreamReader.close();
                 bufferedReader.close();
                 JSONObject jsonObject = new JSONObject(json);
                 JSONArray jsonArray = jsonObject.getJSONArray(chose);
@@ -111,9 +114,8 @@ public class ActionActivity extends AppCompatActivity {
             } catch (Exception e) {
                 jsonList.add("No Service");
             } finally {
-                if(inputStreamReader!=null||bufferedReader!=null)
+                if(bufferedReader!=null)
                     try {
-                        inputStreamReader.close();
                         bufferedReader.close();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -166,8 +168,9 @@ public class ActionActivity extends AppCompatActivity {
             } else {
                 textHolder = (TextHolder) view.getTag();
             }
-            if(list.get(i).toString().contains("Error")||list.get(i).toString().contains("错误")||list.get(i).toString().contains("No Service"))
-                textHolder.textView.setTextColor(Color.parseColor("#ff0000"));
+            if(list.get(i).toString().contains("Error")||list.get(i).toString().contains("错误")||list.get(i).toString().contains("No Service")){
+                vibrator.vibrate(100);
+                textHolder.textView.setTextColor(Color.parseColor("#ff0000"));}
             textHolder.textView.setText(list.get(i));
             return view;
         }

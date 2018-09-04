@@ -20,6 +20,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.tencent.smtt.sdk.TbsVideo;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,6 +34,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+
+import jp.wasabeef.glide.transformations.BlurTransformation;
 
 public class videoList extends AppCompatActivity {
     private List<VideoBean> list = new ArrayList<>();
@@ -57,22 +61,15 @@ public class videoList extends AppCompatActivity {
                     break;
                 }
                 case 1: {
-                    String name = (String) msg.obj;
-
-                    if(name.endsWith("vdk1")){
-                        Intent intent = new Intent();
-                        intent.setClass(videoList.this, VideoPlay.class);
+                    EMS ems=(EMS)msg.obj;
+                    Intent intent = new Intent();
+                        intent.setClass(videoList.this, VideoPlay_X5.class);
                         intent.putExtra("url", url);
                         intent.putExtra("videoPath", videoPath);
-                        intent.putExtra("name", (String) msg.obj);
+                        intent.putExtra("imagePath", imagePath);
+                        intent.putExtra("video_name",ems.getVideo());
+                        intent.putExtra("image_name",ems.getImage());
                         startActivity(intent);
-                    }
-                    else
-                        Toast.makeText(videoList.this, "不支持格式", Toast.LENGTH_SHORT).show();
-                    break;
-                }
-                case 2: {
-                    Glide.with(videoList.this).load("http://" + url + doorImagePath + backGround[msg.arg1]).dontAnimate().thumbnail(0.1f).into(backGroundImage);
                     break;
                 }
                 default:
@@ -96,8 +93,7 @@ public class videoList extends AppCompatActivity {
         backGround = getIntent().getStringArrayExtra("doorList");
         backGroundImage = findViewById(R.id.backGround);
         int listPort = (int) (Math.random() * backGround.length);
-        new Change(listPort).start();
-        Glide.with(this).load("http://" + url + doorImagePath + getIntent().getStringExtra("backGround")).thumbnail(0.2f).placeholder(R.mipmap.background).error(R.mipmap.background).into(backGroundImage);
+        Glide.with(this).load("http://" + url + doorImagePath +backGround[listPort]).bitmapTransform(new BlurTransformation(this,12)).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.RESULT).error(R.mipmap.background).into(backGroundImage);
         listView = findViewById(R.id.videoListView);
         myAdapter = new MyAdapter(this, list);
         listView.setAdapter(myAdapter);
@@ -106,28 +102,6 @@ public class videoList extends AppCompatActivity {
 
 
     ////////////////////////////////////////////内部类/////////////////////////////////////////////////////////////////////////
-
-    ////////////////////////////                    定时更换背景     //////////////////////////////////////////////////////
-
-    class Change extends Thread {
-        private int flag, port;
-
-        public Change(int port) {
-            this.port = port;
-            this.flag = port;
-        }
-
-        public void run() {
-            change();
-        }
-
-        private void change() {
-            Message message = Message.obtain();
-            message.what = 2;
-            message.arg1 = flag;
-            handler.sendMessage(message);
-        }
-    }
 
     ////////////////////////////////////////////////////////////////       下载JSON       ///////////////////////////////////////////////////////////////
 
@@ -261,12 +235,12 @@ public class videoList extends AppCompatActivity {
 
 
             final VideoBean bean = list.get(i);
-            Glide.with(context).load("http://" + url + imagePath + bean.getImageLeft()).into(viewHolder.imgLeft);
+            Glide.with(context).load("http://" + url + imagePath + bean.getImageLeft()).skipMemoryCache(true).into(viewHolder.imgLeft);
             //viewHolder.imgLeft.setImageResource(R.mipmap.test);
             viewHolder.tvLeft.setVisibility(View.INVISIBLE);
             viewHolder.tvLeft.setText(bean.getNameLeft().substring(0, bean.getNameLeft().lastIndexOf(".")));
             if (!"NO".equals(bean.getNameRight())) {
-                Glide.with(context).load("http://" + url + imagePath + bean.getImageRight()).into(viewHolder.imgRight);
+                Glide.with(context).load("http://" + url + imagePath + bean.getImageRight()).skipMemoryCache(true).into(viewHolder.imgRight);
                 //viewHolder.imgRight.setImageResource(R.mipmap.test);
                 viewHolder.tvRight.setVisibility(View.INVISIBLE);
                 viewHolder.tvRight.setText(bean.getNameRight().substring(0, bean.getNameRight().lastIndexOf(".")));
@@ -305,7 +279,8 @@ public class videoList extends AppCompatActivity {
                 public void onClick(View view) {
                     Message message = Message.obtain();
                     message.what = 1;
-                    message.obj = bean.getNameLeft();
+//                    message.obj = bean.getNameLeft();
+                    message.obj=new EMS(bean.getNameLeft(),bean.getImageLeft());
                     handler.sendMessage(message);
                 }
             });
@@ -316,7 +291,8 @@ public class videoList extends AppCompatActivity {
                     if (!"NO".equals(bean.getNameRight())) {
                         Message message = Message.obtain();
                         message.what = 1;
-                        message.obj = bean.getNameRight();
+//                        message.obj = bean.getNameRight();
+                        message.obj=new EMS(bean.getNameRight(),bean.getImageRight());
                         handler.sendMessage(message);
                     }
                 }

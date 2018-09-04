@@ -6,8 +6,8 @@ android {
         applicationId "sline.com.polaris"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         ndk { abiFilters "armeabi", "armeabi-v7a", "x86", "mips" }
     }
@@ -16,6 +16,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    buildToolsVersion '27.0.2'
+    productFlavors {
     }
 }
 
@@ -28,5 +31,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:0.5'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:2.2.2'
     compile 'com.github.bumptech.glide:glide:3.7.0'
-    implementation files('libs/tbs_sdk_thirdapp_v3.6.0.1234_43608_sharewithdownload_withoutGame_obfs_20180510_111111.jar')
+    compile 'jp.wasabeef:glide-transformations:2.0.1'
+    implementation files('libs/tbs_sdk_thirdapp_v3.6.0.1325_43613_sharewithdownload_withoutGame_obfs_20180807_151115.jar')
 }

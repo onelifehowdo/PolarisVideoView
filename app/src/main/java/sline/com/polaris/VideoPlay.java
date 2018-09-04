@@ -9,6 +9,8 @@ import android.view.WindowManager;
 import android.widget.MediaController;
 import android.widget.VideoView;
 
+import com.tencent.smtt.sdk.TbsVideo;
+
 public class VideoPlay extends AppCompatActivity {
     private String url,name,videoPath;
     private VideoView mVideoView;
@@ -25,7 +27,7 @@ public class VideoPlay extends AppCompatActivity {
         setContentView(R.layout.activity_video_play);
         mVideoView =findViewById(R.id.videoView);
         getData();
-        playVideo();
+            playVideo_videoview();
     }
 
     @Override
@@ -48,12 +50,14 @@ public class VideoPlay extends AppCompatActivity {
         videoPath=getIntent().getStringExtra("videoPath");
     }
 
-    private void playVideo(){
+    private void playVideo_videoview(){
+        Log.i("tag","video使用"+"http://" + url+videoPath+name);
         mUri = Uri.parse("http://" + url+videoPath+name);
         mVideoView.setVideoURI(mUri);
         MediaController mediaController=new MediaController(this);
         mVideoView.setMediaController(mediaController);
         mVideoView.start();
     }
+
 
 }
