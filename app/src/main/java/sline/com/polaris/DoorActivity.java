@@ -140,6 +140,13 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 //        System.gc();
 //    }
 
+
+    @Override
+    protected void onPause() {
+        ip.setText("");
+        super.onPause();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -333,13 +340,11 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 } else if (flag == 1) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
                     intent.putExtra("url", "http://"+ip.getText().toString());
-                    ip.setText("");
                     startActivity(intent);
                 }
                 else if (flag == 2) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
                     intent.putExtra("url", "https://m.baidu.com/s?from=1086k&tn=baidulocal&word=" + ip.getText().toString());
-                    ip.setText("");
                     startActivity(intent);
                 }
                 break;

@@ -93,7 +93,7 @@ public class videoList extends AppCompatActivity {
         backGround = getIntent().getStringArrayExtra("doorList");
         backGroundImage = findViewById(R.id.backGround);
         int listPort = (int) (Math.random() * backGround.length);
-        Glide.with(this).load("http://" + url + doorImagePath +backGround[listPort]).bitmapTransform(new BlurTransformation(this,12)).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.RESULT).error(R.mipmap.background).into(backGroundImage);
+        Glide.with(this).load("http://" + url + doorImagePath +backGround[listPort]).bitmapTransform(new BlurTransformation(this,12)).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.RESULT).placeholder(null).error(R.mipmap.background).into(backGroundImage);
         listView = findViewById(R.id.videoListView);
         myAdapter = new MyAdapter(this, list);
         listView.setAdapter(myAdapter);
