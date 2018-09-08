@@ -34,7 +34,7 @@ public class VideoPlay_X5 extends Activity {
         imageView=findViewById(R.id.VideoPlay_x5_img);
         video = getIntent().getStringExtra("url") + getIntent().getStringExtra("videoPath") + getIntent().getStringExtra("video_name");
         image = getIntent().getStringExtra("url") + getIntent().getStringExtra("imagePath") + getIntent().getStringExtra("image_name");
-        Glide.with(this).load("http://"+image).thumbnail(0.2f).error(R.mipmap.background).bitmapTransform(new BlurTransformation(this,14)).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).into(imageView);
+        Glide.with(this).load("http://"+image).thumbnail(0.2f).error(R.mipmap.background).bitmapTransform(new BlurTransformation(this,12)).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).into(imageView);
         webView = (X5WebView) findViewById(R.id.web_filechooser);
         webView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override

@@ -33,7 +33,6 @@
             android:name=".videoList"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/VideoListThem"
-            android:launchMode="singleInstance"
             android:screenOrientation="portrait" />
         <activity
             android:name=".VideoPlay"
@@ -51,6 +50,7 @@
             android:name=".VideoPlay_X5"
             android:theme="@style/X5Player"
             android:screenOrientation="portrait"
+            android:launchMode="singleInstance"
             android:configChanges="orientation|screenSize|keyboardHidden">
         </activity>
     </application>

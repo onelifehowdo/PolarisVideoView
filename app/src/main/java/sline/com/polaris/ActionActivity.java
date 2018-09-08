@@ -30,6 +30,8 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
+import sline.com.polaris.tools.MakeMessage;
+
 public class ActionActivity extends AppCompatActivity {
     private String url, chose;
     private List<String> jsonList = new ArrayList();
@@ -37,6 +39,7 @@ public class ActionActivity extends AppCompatActivity {
     private ProgressBar wait;
     private MyAdapter myAdapter;
     private Vibrator vibrator;
+    private final int ITEM_DOWN=0;
 
     @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
@@ -44,7 +47,7 @@ public class ActionActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
-                case 1: {
+                case ITEM_DOWN: {
                     wait.setVisibility(View.GONE);
                     myAdapter.notifyDataSetChanged();
                     break;
@@ -69,12 +72,11 @@ public class ActionActivity extends AppCompatActivity {
         listView = findViewById(R.id.actionListView);
         myAdapter = new MyAdapter(this,jsonList);
         listView.setAdapter(myAdapter);
-        DownJson downJson = new DownJson("http://" + url + "/web/webpage/actionforapp.php?chose=", chose);
-        downJson.start();
+        new Thread(new DownJson("http://" + url + "/web/webpage/actionforapp.php?chose=", chose)).start();
     }
 
 
-    class DownJson extends Thread {
+    class DownJson implements Runnable {
 
 
         private String url, chose;
@@ -120,9 +122,7 @@ public class ActionActivity extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                Message message = Message.obtain();
-                message.what = 1;
-                handler.sendMessage(message);
+                new MakeMessage(ITEM_DOWN,0,0,null,handler).makeMessage();
             }
 
         }
@@ -134,12 +134,10 @@ public class ActionActivity extends AppCompatActivity {
     private class MyAdapter extends BaseAdapter {
         private List<String> list;
         private LayoutInflater inflater;
-        private Context context;
 
         public MyAdapter(Context context, List<String> list) {
             this.list = list;
             inflater = LayoutInflater.from(context);
-            this.context = context;
         }
 
         @Override
