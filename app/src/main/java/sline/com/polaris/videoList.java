@@ -104,7 +104,7 @@ public class videoList extends AppCompatActivity {
         listView = findViewById(R.id.videoListView);
         myAdapter = new MyAdapter(this, list, url, imagePath, ITEM_CLICK, handler);
         listView.setAdapter(myAdapter);
-        new Thread(new DownLoadJson("http://" + url + jsonPath + "video.json", "video", handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
+        new Thread(new DownLoadJson("http://" + url + jsonPath + "video.json", "video","GET", handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
     }
 
     private void IntentSkip(EMS ems){

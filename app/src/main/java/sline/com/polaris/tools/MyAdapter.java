@@ -111,6 +111,7 @@ public class MyAdapter extends BaseAdapter {
         viewHolder.tvLeft.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                viewHolder.tvLeft.setVisibility(View.INVISIBLE);
                 new MakeMessage(ITEM_CLICK,0,0,new EMS(bean.getNameLeft(),bean.getImageLeft()),handler).makeMessage();
             }
         });
@@ -119,6 +120,7 @@ public class MyAdapter extends BaseAdapter {
             @Override
             public void onClick(View view) {
                 if (!"NO".equals(bean.getNameRight())) {
+                    viewHolder.tvRight.setVisibility(View.INVISIBLE);
                     new MakeMessage(ITEM_CLICK,0,0,new EMS(bean.getNameRight(),bean.getImageRight()),handler).makeMessage();
                 }
             }

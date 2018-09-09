@@ -62,16 +62,15 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     private Animation animationIcon, animationOpen, animationClose,
             animationCloud, animationSettingOpen, animationSettingClose, animationOpenDoor;
     private EditText ip;
-    private ProgressBar progressBar1;
     private int DoorImageSize, listPort, bitMapPort = 1, downPort = 0, flag = 2;
     private boolean jsonFlag = true, softInput = false;
 
     private Bitmap[] bitMap = new Bitmap[4];
     private boolean[] bitMapLock;
     private long date, lastBackTime;
-    private Vibrator vibrator;
+//    private Vibrator vibrator;
 
-    private static final int MAKE_TOAST=0,GET_JSON_SUCCEED=1,GET_JSON_FAIL=2;
+    private static final int MAKE_TOAST = 0, GET_JSON_SUCCEED = 1, GET_JSON_FAIL = 2;
 
     @SuppressLint("HandlerLeak")
     Handler handler = new Handler() {
@@ -80,7 +79,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
             super.handleMessage(msg);
             switch (msg.what) {
                 case MAKE_TOAST: {
-                    Toast.makeText(DoorActivity.this, (String)msg.obj, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(DoorActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
                     break;
                 }
                 case GET_JSON_SUCCEED: {
@@ -89,7 +88,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 case GET_JSON_FAIL: {
                     if (ip.getText().toString().equals("Linking...")) {
-                        vibrator.vibrate(100);
+                        ((Vibrator) getSystemService(Service.VIBRATOR_SERVICE)).vibrate(100);
                         ip.setText("Not Found");
                     }
                     break;
@@ -137,7 +136,6 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         animationOpenDoor = AnimationUtils.loadAnimation(this, R.anim.opendooranim);
         animationOpenDoor.setFillAfter(true);
 
-        progressBar1 = findViewById(R.id.first_progressbar);
         DoorImage = findViewById(R.id.doorImage);
         bitMapLock = new boolean[bitMap.length];
         switcher = (ImageView) findViewById(R.id.switcher);
@@ -160,11 +158,9 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         listPort = bitMap.length;
         date = System.currentTimeMillis();
         lastBackTime = date;
-        vibrator = (Vibrator) getSystemService(Service.VIBRATOR_SERVICE);
 
 
         ip.setLongClickable(false);
-        ip.setOnClickListener(this);
         index.setOnLongClickListener(this);
         index.setOnTouchListener(this);
         switcher.setOnClickListener(this);
@@ -224,9 +220,10 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onAnimationEnd(Animation animation) {
                 cloud.setVisibility(View.GONE);
+                ip.setOnClickListener(DoorActivity.this);
+                animationCloud=null;
                 System.gc();
             }
-
             @Override
             public void onAnimationRepeat(Animation animation) {
 
@@ -278,6 +275,8 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             }
+            default:
+                break;
 
         }
     }
@@ -313,7 +312,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 if (flag == 0) {
                     url = temp;
 //                    new Thread(new DoorJson(url)).start();
-                    new Thread(new DownLoadJson("http://" + url + jsonPath + "doorImage.json","doorImage",handler,GET_JSON_SUCCEED,GET_JSON_FAIL)).start();
+                    new Thread(new DownLoadJson("http://" + url + jsonPath + "doorImage.json", "doorImage", "GET", handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
                     ip.setText("Linking...");
                 } else if (flag == 1) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
@@ -431,9 +430,9 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 for (int i = 0; i < list.length; i++) {
                     new File(getCacheDir().toString() + "/image_manager_disk_cache/" + list[i].toString()).delete();
                 }
-                new MakeMessage(MAKE_TOAST,0,0,new String("清除"+list.length+"个文件"),handler).makeMessage();
+                new MakeMessage(MAKE_TOAST, 0, 0, new String("清除" + list.length + "个文件"), handler).makeMessage();
             } catch (NullPointerException e) {
-                new MakeMessage(MAKE_TOAST,0,0,new String("清除成功"),handler).makeMessage();
+                new MakeMessage(MAKE_TOAST, 0, 0, new String("清除成功"), handler).makeMessage();
             }
         }
     }//删除缓存
@@ -495,6 +494,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         else
             return 2;
     } // IP 状态测试
+
     private boolean test() {
         boolean flag = true;
         for (int i = 0; i < bitMap.length; i++) {
@@ -517,7 +517,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         new Thread(new DoorImageDown("http://" + url + doorImagePath + doorList.get(listPort).toString(), downPort)).start();
     }
 
-    private void iniDoorLayout(Message msg){
+    private void iniDoorLayout(Message msg) {
         doorList.addAll((List<String>) msg.obj);
         DoorImageSize = ((List) msg.obj).size();
         try {

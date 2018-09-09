@@ -9,8 +9,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -25,33 +28,54 @@ import sline.com.polaris.DoorActivity;
 public class DownLoadJson implements Runnable {
 
 
-    private String url, json,name;
+    private String url, json, name, Method,data;
     private Handler handler;
     private ArrayList<String> jsonList;
-    private int GET_JSON_SUCCEED,GET_JSON_FAIL;
+    private int GET_JSON_SUCCEED, GET_JSON_FAIL;
 
-    public DownLoadJson(String url,String name, Handler handler,int GET_JSON_SUCCEED,int GET_JSON_FAIL) {
+    public DownLoadJson(String url,String name, String Method, Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL) {
         this.url = url;
-        this.name=name;
+        this.name = name;
         this.handler = handler;
-        this.GET_JSON_FAIL=GET_JSON_FAIL;
-        this.GET_JSON_SUCCEED=GET_JSON_SUCCEED;
+        this.Method = Method;
+        this.GET_JSON_FAIL = GET_JSON_FAIL;
+        this.GET_JSON_SUCCEED = GET_JSON_SUCCEED;
+    }
+    public DownLoadJson(String url,String name,String data,String Method,  Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL) {
+        this.url = url;
+        this.name = name;
+        this.handler = handler;
+        this.Method = Method;
+        this.data=data;
+        this.GET_JSON_FAIL = GET_JSON_FAIL;
+        this.GET_JSON_SUCCEED = GET_JSON_SUCCEED;
     }
 
 
     @Override
     public void run() {
+
+
         try {
-            json = getJson(url);
-            jsonList = formatJson(json,name);
-            mixJson(jsonList);
-            if(handler!=null)
-            new MakeMessage(GET_JSON_SUCCEED, 0, 0, jsonList, handler).makeMessage();//返回JSON
+            if (Method.equals("GET")) {
+                json = getJson(url);
+                jsonList = formatJson(json, name);
+                mixJson(jsonList);
+            }
+            else if(Method.equals("POST")){
+                json = getJson(url,data);
+                jsonList = formatJson(json, name);
+            }
+            if (handler != null)
+                new MakeMessage(GET_JSON_SUCCEED, 0, 0, jsonList, handler).makeMessage();//返回JSON
         } catch (Exception e) {
             e.printStackTrace();
-            if(handler!=null)
-            new MakeMessage(GET_JSON_FAIL, 0, 0, null, handler).makeMessage();//网络失败改变文字
+            if (handler != null)
+                new MakeMessage(GET_JSON_FAIL, 0, 0, null, handler).makeMessage();//网络失败改变文字
         }
+
+
+
     }
 
     private String getJson(String url) throws Exception {
@@ -83,6 +107,38 @@ public class DownLoadJson implements Runnable {
 
     }
 
+    public String getJson(String url, String data) throws Exception {
+        Log.i("tag",url+"data:"+data);
+        HttpURLConnection connection;
+        BufferedWriter bufferedWriter = null;
+        BufferedReader bufferedReader = null;
+        try {
+            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+            connection.setRequestMethod("POST");
+            connection.setConnectTimeout(2000);
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
+            bufferedWriter.write(data);
+            bufferedWriter.flush();
+            bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String temp = "", a;
+            while ((a = bufferedReader.readLine()) != null)
+                temp += a;
+            return temp;
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            throw e;
+        } finally {
+            if (bufferedReader != null)
+                bufferedReader.close();
+            if (bufferedWriter != null)
+                bufferedWriter.close();
+        }
+
+
+    }
+
     private void mixJson(ArrayList<String> jsonList) {
         for (int i = 0; i < jsonList.size() - 1; i++) {
             int index;
@@ -94,7 +150,7 @@ public class DownLoadJson implements Runnable {
         }
     }
 
-    private ArrayList<String> formatJson(String json,String name) throws Exception {
+    private ArrayList<String> formatJson(String json, String name) throws Exception {
         ArrayList<String> jsonList = new ArrayList<>();
         JSONObject jsonObject;
         jsonObject = new JSONObject(json);
