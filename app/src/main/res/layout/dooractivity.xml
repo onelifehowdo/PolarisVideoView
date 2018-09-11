@@ -26,6 +26,7 @@
             android:paddingBottom="0px"
             android:focusableInTouchMode="true"
             android:cursorVisible="false"
+            android:visibility="gone"
             android:lines="1"
             android:layout_centerHorizontal="true"
             android:textSize="50sp"

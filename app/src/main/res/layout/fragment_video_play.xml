@@ -2,6 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/body_fragment"
     android:background="@color/BackgroundColor1">
     <ImageView
         android:id="@+id/VideoPlay_x5_img"
@@ -21,6 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/web_filechooser"
+            android:background="#000000"
             android:layout_centerInParent="true"
             android:visibility="invisible">
         </sline.com.polaris.utils.X5WebView >

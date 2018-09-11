@@ -1,54 +1,78 @@
 package sline.com.polaris;
 
-import android.app.Activity;
+
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.webkit.JavascriptInterface;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 
 import jp.wasabeef.glide.transformations.BlurTransformation;
-import sline.com.polaris.utils.WebViewJavaScriptFunction;
 import sline.com.polaris.utils.X5WebView;
 
-public class VideoPlay_X5 extends Activity {
 
-
+/**
+ * A simple {@link Fragment} subclass.
+ */
+public class VideoPlayFragment extends Fragment {
     private X5WebView webView;
     private String video, image;
     private ImageView imageView;
+    private FrameLayout frameLayout;
+    private SimpleTarget<GlideDrawable> myTarget;
+
+    public VideoPlayFragment() {
+        // Required empty public constructor
+    }
+
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        // TODO Auto-generated method stub
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_video_play__x5);
-        imageView=findViewById(R.id.VideoPlay_x5_img);
-        video = getIntent().getStringExtra("url") + getIntent().getStringExtra("videoPath") + getIntent().getStringExtra("video_name");
-        image = getIntent().getStringExtra("url") + getIntent().getStringExtra("imagePath") + getIntent().getStringExtra("image_name");
-        Glide.with(this).load("http://"+image).thumbnail(0.2f).error(R.mipmap.background).bitmapTransform(new BlurTransformation(this,12)).skipMemoryCache(true).diskCacheStrategy(DiskCacheStrategy.NONE).into(imageView);
-        webView = (X5WebView) findViewById(R.id.web_filechooser);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View view=inflater.inflate(R.layout.fragment_video_play, container, false);
+        initView(view,getArguments());
+        return view;
+    }
+
+    private void initView(View view,Bundle bundle){
+        imageView=view.findViewById(R.id.VideoPlay_x5_img);
+        frameLayout=view.findViewById(R.id.body_fragment);
+        video = bundle.getString("url") +bundle.getString("videoPath") + bundle.getString("video_name");
+        image = bundle.getString("url") + bundle.getString("imagePath") +bundle.getString("image_name");
+        webView = (X5WebView) view.findViewById(R.id.web_filechooser);
+        myTarget=new MySimpleTarget<GlideDrawable>(imageView,webView);
+        Glide.with(this)
+                .load("http://"+image)
+                .error(R.mipmap.background)
+                .bitmapTransform(new BlurTransformation(getContext(),50))
+                .skipMemoryCache(true)
+                .diskCacheStrategy(DiskCacheStrategy.SOURCE).into(myTarget);
         webView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View view) {
                 return true;
             }
         });
-        getWindow().setFormat(PixelFormat.TRANSLUCENT);
+//        getWindow().setFormat(PixelFormat.TRANSLUCENT);
         webView.getView().setOverScrollMode(View.OVER_SCROLL_ALWAYS);
         webView.setWebViewClient(new MyClient());
         webView.loadDataWithBaseURL(null, html(), "text/html", "utf-8", null);
-
     }
-
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         // TODO Auto-generated method stub
@@ -96,7 +120,23 @@ public class VideoPlay_X5 extends Activity {
         public void onPageFinished(WebView webView, String s) {
             super.onPageFinished(webView, s);
             webView.getLayoutParams().height=webView.getHeight();
-            webView.setVisibility(View.VISIBLE);
+//            webView.setVisibility(View.VISIBLE);
+        }
+    }
+
+    class MySimpleTarget<GlideDrawable> extends SimpleTarget {
+        private ImageView imageView;
+        private View view;
+
+        public MySimpleTarget(ImageView imageView, View view) {
+            this.imageView = imageView;
+            this.view = view;
+        }
+
+        @Override
+        public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
+            imageView.setImageDrawable((Drawable) resource);
+            view.setVisibility(View.VISIBLE);
         }
     }
 }

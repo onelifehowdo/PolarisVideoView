@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/showFragment"
     android:background="@color/BackgroundColor1"
     tools:context="sline.com.polaris.videoList">
 
@@ -18,6 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:divider="@null"
+        android:visibility="invisible"
         android:dividerHeight="20dp"
         android:scrollbars="none">
     </ListView>
