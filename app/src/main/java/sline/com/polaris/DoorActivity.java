@@ -22,6 +22,8 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
@@ -44,6 +46,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -64,17 +67,17 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     private String imagePath = "/web/image/videoimage/";
     private String doorImagePath = "/web/image/doorimage/";
     private String jsonPath = "/web/js/";
-    private List<String> doorList = new ArrayList();
+    private List<String> doorList = new ArrayList<String>();
     private ImageView DoorImage, switcher, delCache, index, cloud, setting, updata, shutdown, restart, cancel, returndata;
     private RelativeLayout firstLayout, doorLayout;
     private LinearLayout toolsBar;
     private Animation animationIcon, animationOpen, animationClose,
             animationCloud, animationSettingOpen, animationSettingClose, animationOpenDoor, animationInput;
-    private EditText ip;
+    private EditText input;
     private int DoorImageSize, drawablePort = 1, downPort = 0, flag = 2;
-    private boolean softInput = false,firstDown=true;
-
-    private Drawable[] drawables = new Drawable[4];
+    private boolean softInput = false;
+    private ProgressBar progressBar;
+    private Drawable[] drawables;
     private boolean[] bitMapLock;
     private long date, lastBackTime;
     private static final int MAKE_TOAST = 0, GET_JSON_SUCCEED = 1, GET_JSON_FAIL = 2, GET_FirstIMAGE_SUCCEED = 3, GET_IMAGE_FAIL = 4;
@@ -94,23 +97,26 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 }
                 case GET_JSON_FAIL: {
-                    if (ip.getText().toString().equals("Linking...")) {
+                    if (input.getText().toString().equals("Linking...")) {
                         ((Vibrator) getSystemService(Service.VIBRATOR_SERVICE)).vibrate(100);
-                        ip.setText("Not Found");
+                        input.setText("Not Found");
+                        progressBar.setVisibility(View.INVISIBLE);
                     }
                     break;
                 }
                 case GET_FirstIMAGE_SUCCEED: {
-                    DoorImage.setImageDrawable(drawables[0]);
-                    ip.setText("");
-                    doorLayout.setVisibility(View.VISIBLE);
-                    firstLayout.setVisibility(View.GONE);
-                    firstDown=false;
+                    if(drawables!=null){
+                        DoorImage.setImageDrawable(drawables[0]);
+                        input.setText("");
+                        doorLayout.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.INVISIBLE);
+                        firstLayout.setVisibility(View.GONE);
+                    }
                     break;
                 }
                 case GET_IMAGE_FAIL: {
                     drawablePort++;
-                    drawablePort=drawablePort%drawables.length;
+                    drawablePort = drawablePort % drawables.length;
                     break;
                 }
             }
@@ -120,7 +126,8 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onPause() {
-        ip.setText("");
+        input.setText("");
+        progressBar.setVisibility(View.INVISIBLE);
         super.onPause();
     }
 
@@ -128,14 +135,10 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.dooractivity);
+        setTheme(R.style.DoorLater);
         System.gc();
+        setContentView(R.layout.dooractivity);
 
-        animationOpen = AnimationUtils.loadAnimation(this, R.anim.toolsbaropen);
-        animationClose = AnimationUtils.loadAnimation(this, R.anim.toolsbarclose);
-        animationSettingOpen = AnimationUtils.loadAnimation(this, R.anim.setting_rotate_open);
-        animationSettingClose = AnimationUtils.loadAnimation(this, R.anim.setting_rotate_close);
-        animationIcon = AnimationUtils.loadAnimation(this, R.anim.animation);
         animationCloud = AnimationUtils.loadAnimation(this, R.anim.cloud);
         animationOpenDoor = AnimationUtils.loadAnimation(this, R.anim.opendooranim);
         animationOpenDoor.setFillAfter(true);
@@ -143,80 +146,24 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         animationInput.setFillAfter(true);
 
         DoorImage = findViewById(R.id.doorImage);
-        bitMapLock = new boolean[drawables.length];
-        switcher = findViewById(R.id.switcher);
-        switcher.startAnimation(animationIcon);
-        delCache = findViewById(R.id.delete);
-        setting = findViewById(R.id.setting);
         index = findViewById(R.id.indexImage);
         index.startAnimation(animationOpenDoor);
         cloud = findViewById(R.id.cloud);
         cloud.startAnimation(animationCloud);
-        ip = findViewById(R.id.input);
+        input = findViewById(R.id.input);
+        progressBar = findViewById(R.id.progressbar);
         firstLayout = findViewById(R.id.firstLayout);
         doorLayout = findViewById(R.id.doorLayout);
-        toolsBar = findViewById(R.id.toolsBar);
-        updata = findViewById(R.id.updata);
-        shutdown = findViewById(R.id.shutdown);
-        restart = findViewById(R.id.restart);
-        cancel = findViewById(R.id.cancel);
-        returndata = findViewById(R.id.returndata);
         date = System.currentTimeMillis();
-        lastBackTime = date;
 
 
         index.setOnLongClickListener(this);
         index.setOnTouchListener(this);
-        ip.setLongClickable(false);
-        ip.setOnClickListener(DoorActivity.this);
-        switcher.setOnClickListener(this);
-        setting.setOnClickListener(this);
-        DoorImage.setOnTouchListener(this);
-//        switcher.setOnTouchListener(this);
-        switcher.setOnLongClickListener(this);
-        delCache.setOnLongClickListener(this);
-        updata.setOnLongClickListener(this);
-        shutdown.setOnLongClickListener(this);
-        restart.setOnLongClickListener(this);
-        cancel.setOnLongClickListener(this);
-        returndata.setOnLongClickListener(this);
+        input.setLongClickable(false);
+        input.setOnClickListener(DoorActivity.this);
 
 
         //动画
-        animationClose.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-                flag = 3;
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                toolsBar.setVisibility(View.GONE);
-                flag = 2;
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-        animationOpen.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-                flag = 3;
-                toolsBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                flag = 1;
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
         animationCloud.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
@@ -226,10 +173,11 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onAnimationEnd(Animation animation) {
                 cloud.setVisibility(View.GONE);
+                input.setVisibility(View.VISIBLE);
+                input.setAnimation(animationInput);
+                animationCloud.setAnimationListener(null);
+                cloud = null;
                 animationCloud = null;
-                ip.setVisibility(View.VISIBLE);
-                ip.setAnimation(animationInput);
-                animationOpenDoor = null;
                 System.gc();
             }
 
@@ -238,7 +186,40 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 
             }
         });
+        animationOpenDoor.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
 
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                animationOpenDoor.setAnimationListener(null);
+                animationOpenDoor = null;
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        animationInput.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                animationInput.setAnimationListener(null);
+                animationInput = null;
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
 
     }
 
@@ -253,6 +234,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                     if (flag == 1) {
                         setting.startAnimation(animationSettingClose);
                         toolsBar.startAnimation(animationClose);
+                        System.gc();
                     }
                     if (bitMapLock[drawablePort]) {
                         changeImage(drawablePort, downPort);
@@ -264,8 +246,9 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.input: {
-                if (ip.getText().toString().equals("Not Found") || ip.getText().toString().equals("Linking...")) {
-                    ip.setText("");
+                if (input.getText().toString().equals("Not Found") || input.getText().toString().equals("Linking...")) {
+                    input.setText("");
+                    progressBar.setVisibility(View.INVISIBLE);
                 }
                 softInput = true;
                 break;
@@ -304,6 +287,9 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 bundle.putStringArray("doorList", doorList.toArray(new String[doorList.size()]));
                 intent.putExtra("data", bundle);
                 startActivity(intent);
+                emptyDoorLayout();
+                firstLayout.setVisibility(View.VISIBLE);
+                doorLayout.setVisibility(View.GONE);
                 break;
             }
             case R.id.delete: {
@@ -311,23 +297,23 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.indexImage: {
-                String temp = ip.getText().toString();
+                String temp = input.getText().toString();
                 if (temp.equals("Not Found") || temp.equals("Linking...") || temp.equals("")) {
                     break;
                 }
+                progressBar.setVisibility(View.VISIBLE);
                 int flag = ip_test(temp);
                 if (flag == 0) {
                     url = temp;
-//                    new Thread(new DoorJson(url)).start();
                     new Thread(new DownLoadJson("http://" + url + jsonPath + "doorImage.json", "doorImage", "GET", handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
-                    ip.setText("Linking...");
+                    input.setText("Linking...");
                 } else if (flag == 1) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
-                    intent.putExtra("url", "http://" + ip.getText().toString());
+                    intent.putExtra("url", "http://" + temp);
                     startActivity(intent);
                 } else if (flag == 2) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
-                    intent.putExtra("url", "https://m.baidu.com/s?from=1086k&tn=baidulocal&word=" + ip.getText().toString());
+                    intent.putExtra("url", "https://m.baidu.com/s?from=1086k&tn=baidulocal&word=" + temp);
                     startActivity(intent);
                 }
                 break;
@@ -378,7 +364,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()) {
             case R.id.indexImage: {
                 InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                inputMethodManager.hideSoftInputFromWindow(ip.getWindowToken(), 0);
+                inputMethodManager.hideSoftInputFromWindow(input.getWindowToken(), 0);
                 softInput = false;
                 break;
             }
@@ -398,16 +384,8 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK && (firstLayout.getVisibility() == View.GONE)) {
+            emptyDoorLayout();
             firstLayout.setVisibility(View.VISIBLE);
-            for (int i = 0; i < drawables.length; i++) {
-                if (drawables[i] != null) {
-//                    bitMap[i].recycle();
-                    drawables[i] = null;
-                }
-            }
-            System.gc();
-//            listPort = drawables.length;
-            drawablePort = 0;
             doorLayout.setVisibility(View.GONE);
             return true;
         }
@@ -465,36 +443,42 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
             bitMapLock[bitMapNum] = false;
             drawables[bitMapNum] = null;
             try {
-                drawables[bitMapNum] = downImage();
-                if (bitMapNum == 0&&firstDown) {
-                    new MakeMessage(GET_FirstIMAGE_SUCCEED, 0, 0, null, handler).makeMessage();
+                if ((drawables[bitMapNum] = downImage()) != null) {
+                    if (firstLayout.getVisibility() == View.VISIBLE && bitMapNum == 0) {
+                        new MakeMessage(GET_FirstIMAGE_SUCCEED, 0, 0, null, handler).makeMessage();
+                    }
+                    Log.i("Tag", "完成下载Drawable" + "[" + bitMapNum + "]：" + url);
                 }
-                Log.i("Tag", "完成下载Drawable" + "["+bitMapNum+"]："+url);
 
             } catch (Exception e) {
                 e.printStackTrace();
                 new MakeMessage(GET_IMAGE_FAIL, 0, 0, null, handler).makeMessage();
-            }finally {
-                bitMapLock[bitMapNum] = true;
-                downPort++;
-                downPort = downPort % DoorImageSize;
+            } finally {
+                if (bitMapLock != null) {
+                    bitMapLock[bitMapNum] = true;
+                    downPort++;
+                    downPort = downPort % DoorImageSize;
+                }
             }
         }
 
         private Drawable downImage() throws Exception {
-            Drawable drawable;
+            Drawable drawable = null;
+            HttpURLConnection connection = null;
             BufferedInputStream bis = null;
             try {
-                URLConnection connection = new URL(url).openConnection();
+                connection = (HttpURLConnection) new URL(url).openConnection();
                 connection.setConnectTimeout(2000);
                 bis = new BufferedInputStream(connection.getInputStream());
-                drawable = new BitmapDrawable(getResources(), BitmapFactory.decodeStream(bis));
+                if (drawables != null)
+                    drawable = new BitmapDrawable(getResources(), BitmapFactory.decodeStream(bis));
                 return drawable;
             } catch (Exception e) {
                 throw e;
             } finally {
                 if (bis != null)
                     bis.close();
+                connection.disconnect();
             }
 
         }
@@ -519,19 +503,118 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     private void changeImage(int DrawablePort, int downPort) {//更换图片
 
         DoorImage.setImageDrawable(drawables[DrawablePort]);
-        Log.i("Tag", "使用Drawable----[" + DrawablePort+"]");
+        Log.i("Tag", "使用Drawable----[" + DrawablePort + "]");
         drawablePort++;
         drawablePort = drawablePort % drawables.length;
-        int testPort=(drawablePort+drawables.length-2)%drawables.length;
+        int testPort = (drawablePort + drawables.length - 2) % drawables.length;
         new Thread(new DoorImageDown("http://" + url + doorImagePath + doorList.get(downPort).toString(), testPort)).start();
     }
 
     private void iniDoorLayout(Message msg) {
+        drawables = new Drawable[4];
+        bitMapLock = new boolean[drawables.length];
         doorList.addAll((List<String>) msg.obj);
         DoorImageSize = ((List) msg.obj).size();
         for (int i = 0; i < drawables.length; i++) {
             new Thread(new DoorImageDown("http://" + url + doorImagePath + ((List) msg.obj).get(i).toString(), i)).start();
         }
+        animationOpen = AnimationUtils.loadAnimation(this, R.anim.toolsbaropen);
+        animationClose = AnimationUtils.loadAnimation(this, R.anim.toolsbarclose);
+        animationSettingOpen = AnimationUtils.loadAnimation(this, R.anim.setting_rotate_open);
+        animationSettingClose = AnimationUtils.loadAnimation(this, R.anim.setting_rotate_close);
+        animationIcon = AnimationUtils.loadAnimation(this, R.anim.animation);
+        animationClose.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                flag = 3;
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                toolsBar.setVisibility(View.GONE);
+                flag = 2;
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        animationOpen.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+                flag = 3;
+                toolsBar.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                flag = 1;
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+        switcher = findViewById(R.id.switcher);
+        switcher.startAnimation(animationIcon);
+        delCache = findViewById(R.id.delete);
+        setting = findViewById(R.id.setting);
+        toolsBar = findViewById(R.id.toolsBar);
+        updata = findViewById(R.id.updata);
+        shutdown = findViewById(R.id.shutdown);
+        restart = findViewById(R.id.restart);
+        cancel = findViewById(R.id.cancel);
+        returndata = findViewById(R.id.returndata);
+        lastBackTime = date;
+        switcher.setOnClickListener(this);
+        setting.setOnClickListener(this);
+        DoorImage.setOnTouchListener(this);
+        switcher.setOnLongClickListener(this);
+        delCache.setOnLongClickListener(this);
+        updata.setOnLongClickListener(this);
+        shutdown.setOnLongClickListener(this);
+        restart.setOnLongClickListener(this);
+        cancel.setOnLongClickListener(this);
+        returndata.setOnLongClickListener(this);
+    }
+
+    private void emptyDoorLayout() {
+        drawablePort = 1;
+        downPort = 0;
+        drawables = null;
+        bitMapLock = null;
+        doorList.clear();
+        animationClose.setAnimationListener(null);
+        animationOpen.setAnimationListener(null);
+        animationOpen = null;
+        animationClose = null;
+        animationSettingOpen = null;
+        animationSettingClose = null;
+        animationIcon = null;
+
+        switcher.setOnClickListener(null);
+        setting.setOnClickListener(null);
+        DoorImage.setOnTouchListener(null);
+        switcher.setOnLongClickListener(null);
+        delCache.setOnLongClickListener(null);
+        updata.setOnLongClickListener(null);
+        shutdown.setOnLongClickListener(null);
+        restart.setOnLongClickListener(null);
+        cancel.setOnLongClickListener(null);
+        returndata.setOnLongClickListener(null);
+        switcher = null;
+        delCache = null;
+        setting = null;
+        toolsBar = null;
+        updata = null;
+        shutdown = null;
+        restart = null;
+        cancel = null;
+        returndata = null;
+        System.gc();
     }
 
 }

@@ -8,32 +8,35 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="DoorThem" parent="AppTheme">
+    <style name="DoorAfter" parent="AppTheme">
+        <item name="android:windowBackground">@mipmap/background</item>
+    </style>
+    <style name="DoorLater" parent="AppTheme">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowFullscreen">true</item>
-        <item name="android:windowBackground">@mipmap/background</item>
+        <item name="android:windowIsTranslucent">true</item>
     </style>
 
     <style name="VideoListThem" parent="AppTheme">
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsTranslucent">true</item>
+        <!--<item name="android:windowIsTranslucent">true</item>-->
         <item name="windowActionBar">false</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
+        <!--<item name="android:windowBackground">@android:color/transparent</item>-->
     </style>
 
-    <style name="X5Player" parent="AppTheme">
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowBackground">@color/BackgroundColor1</item>
-    </style>
+    <!--<style name="X5Player" parent="AppTheme">-->
+        <!--<item name="android:windowNoTitle">true</item>-->
+        <!--<item name="android:windowContentOverlay">@null</item>-->
+        <!--<item name="android:windowIsTranslucent">true</item>-->
+        <!--<item name="android:windowFullscreen">true</item>-->
+        <!--<item name="android:windowBackground">@color/BackgroundColor1</item>-->
+    <!--</style>-->
 
     <style name="WebView" parent="AppTheme">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowIsTranslucent">true</item>
+        <!--<item name="android:windowIsTranslucent">true</item>-->
         <item name="android:windowFullscreen">true</item>
     </style>
 

@@ -26,7 +26,7 @@
             android:paddingBottom="0px"
             android:focusableInTouchMode="true"
             android:cursorVisible="false"
-            android:visibility="gone"
+            android:visibility="invisible"
             android:lines="1"
             android:layout_centerHorizontal="true"
             android:textSize="50sp"
@@ -34,6 +34,14 @@
             android:inputType="text"
             android:background="#65000000"
             />
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressbar"
+            android:layout_below="@+id/input"
+            android:indeterminate="true"
+            android:visibility="invisible"
+            style="?android:attr/progressBarStyleHorizontal"/>
         <ImageView
             android:id="@+id/cloud"
             android:layout_width="match_parent"

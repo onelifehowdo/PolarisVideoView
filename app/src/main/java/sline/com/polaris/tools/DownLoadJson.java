@@ -109,7 +109,7 @@ public class DownLoadJson implements Runnable {
 
     public String getJson(String url, String data) throws Exception {
         Log.i("tag",url+"data:"+data);
-        HttpURLConnection connection;
+        HttpURLConnection connection=null;
         BufferedWriter bufferedWriter = null;
         BufferedReader bufferedReader = null;
         try {
@@ -134,6 +134,7 @@ public class DownLoadJson implements Runnable {
                 bufferedReader.close();
             if (bufferedWriter != null)
                 bufferedWriter.close();
+            connection.disconnect();
         }
 
 
