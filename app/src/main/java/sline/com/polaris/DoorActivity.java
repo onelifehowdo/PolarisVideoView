@@ -2,28 +2,20 @@ package sline.com.polaris;
 
 import android.annotation.SuppressLint;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.ColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
@@ -33,27 +25,12 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
-
-import com.bumptech.glide.Glide;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -93,7 +70,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                     break;
                 }
                 case GET_JSON_SUCCEED: {
-                    iniDoorLayout(msg);
+                    initDoorLayout(msg);
                     break;
                 }
                 case GET_JSON_FAIL: {
@@ -124,13 +101,15 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     };
 
 
+
     @Override
-    protected void onPause() {
+    protected void onStop() {
         input.setText("");
         progressBar.setVisibility(View.INVISIBLE);
-        super.onPause();
+        firstLayout.setVisibility(View.VISIBLE);
+        doorLayout.setVisibility(View.GONE);
+        super.onStop();
     }
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -160,10 +139,10 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         index.setOnLongClickListener(this);
         index.setOnTouchListener(this);
         input.setLongClickable(false);
-        input.setOnClickListener(DoorActivity.this);
+        input.setOnClickListener(this);
 
 
-        //动画
+        //动画监听
         animationCloud.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {
@@ -288,8 +267,6 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 intent.putExtra("data", bundle);
                 startActivity(intent);
                 emptyDoorLayout();
-                firstLayout.setVisibility(View.VISIBLE);
-                doorLayout.setVisibility(View.GONE);
                 break;
             }
             case R.id.delete: {
@@ -305,7 +282,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 int flag = ip_test(temp);
                 if (flag == 0) {
                     url = temp;
-                    new Thread(new DownLoadJson("http://" + url + jsonPath + "doorImage.json", "doorImage", "GET", handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
+                    new Thread(new DownLoadJson("http://" + url + jsonPath + "doorImage.json", "doorImage", "GET", handler, GET_JSON_SUCCEED, GET_JSON_FAIL,true)).start();
                     input.setText("Linking...");
                 } else if (flag == 1) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
@@ -363,7 +340,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onTouch(View view, MotionEvent motionEvent) {
         switch (view.getId()) {
             case R.id.indexImage: {
-                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(getApplication().INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(input.getWindowToken(), 0);
                 softInput = false;
                 break;
@@ -377,7 +354,6 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
             }
 
         }
-
         return false;
     }
 
@@ -485,6 +461,55 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
 
     }//下载图片
 
+//    class Myhandler extends Handler {
+//        private final WeakReference<DoorActivity> weakReference;
+//
+//        public Myhandler(DoorActivity doorActivity) {
+//            weakReference = new WeakReference<DoorActivity>(doorActivity);
+//        }
+//
+//        @Override
+//        public void handleMessage(Message msg) {
+//            DoorActivity doorActivity = weakReference.get();
+//            super.handleMessage(msg);
+//            if (doorActivity != null) {
+//                switch (msg.what) {
+//                    case MAKE_TOAST: {
+//                        Toast.makeText(DoorActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
+//                        break;
+//                    }
+//                    case GET_JSON_SUCCEED: {
+//                        initDoorLayout(msg);
+//                        break;
+//                    }
+//                    case GET_JSON_FAIL: {
+//                        if (input.getText().toString().equals("Linking...")) {
+//                            ((Vibrator) getSystemService(Service.VIBRATOR_SERVICE)).vibrate(100);
+//                            input.setText("Not Found");
+//                            progressBar.setVisibility(View.INVISIBLE);
+//                        }
+//                        break;
+//                    }
+//                    case GET_FirstIMAGE_SUCCEED: {
+//                        if (drawables != null) {
+//                            DoorImage.setImageDrawable(drawables[0]);
+//                            input.setText("");
+//                            doorLayout.setVisibility(View.VISIBLE);
+//                            progressBar.setVisibility(View.INVISIBLE);
+//                            firstLayout.setVisibility(View.GONE);
+//                        }
+//                        break;
+//                    }
+//                    case GET_IMAGE_FAIL: {
+//                        drawablePort++;
+//                        drawablePort = drawablePort % drawables.length;
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//    }
+
     ////////////////////////////////////  内部方法  ////////////////////////////////////
     private int ip_test(String a) {
         String regex_link = "(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])(:([0-9]|[1-9]\\d{1,3}|[1-5]\\d{4}|6[0-4]\\d{4}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5]))?/";
@@ -503,14 +528,14 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
     private void changeImage(int DrawablePort, int downPort) {//更换图片
 
         DoorImage.setImageDrawable(drawables[DrawablePort]);
-        Log.i("Tag", "使用Drawable----[" + DrawablePort + "]");
+        Log.i("Tag", "使用Drawable--[" + DrawablePort + "]");
         drawablePort++;
         drawablePort = drawablePort % drawables.length;
         int testPort = (drawablePort + drawables.length - 2) % drawables.length;
         new Thread(new DoorImageDown("http://" + url + doorImagePath + doorList.get(downPort).toString(), testPort)).start();
     }
 
-    private void iniDoorLayout(Message msg) {
+    private void initDoorLayout(Message msg) {
         drawables = new Drawable[4];
         bitMapLock = new boolean[drawables.length];
         doorList.addAll((List<String>) msg.obj);

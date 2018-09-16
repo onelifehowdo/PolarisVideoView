@@ -31,17 +31,19 @@ public class DownLoadJson implements Runnable {
     private String url, json, name, Method,data;
     private Handler handler;
     private ArrayList<String> jsonList;
+    private boolean isMix=false;
     private int GET_JSON_SUCCEED, GET_JSON_FAIL;
 
-    public DownLoadJson(String url,String name, String Method, Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL) {
+    public DownLoadJson(String url,String name, String Method, Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL,boolean isMix) {
         this.url = url;
         this.name = name;
         this.handler = handler;
         this.Method = Method;
         this.GET_JSON_FAIL = GET_JSON_FAIL;
         this.GET_JSON_SUCCEED = GET_JSON_SUCCEED;
+        this.isMix=isMix;
     }
-    public DownLoadJson(String url,String name,String data,String Method,  Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL) {
+    public DownLoadJson(String url,String name,String data,String Method,  Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL,boolean isMix) {
         this.url = url;
         this.name = name;
         this.handler = handler;
@@ -49,6 +51,7 @@ public class DownLoadJson implements Runnable {
         this.data=data;
         this.GET_JSON_FAIL = GET_JSON_FAIL;
         this.GET_JSON_SUCCEED = GET_JSON_SUCCEED;
+        this.isMix=isMix;
     }
 
 
@@ -60,11 +63,13 @@ public class DownLoadJson implements Runnable {
             if (Method.equals("GET")) {
                 json = getJson(url);
                 jsonList = formatJson(json, name);
-                mixJson(jsonList);
             }
             else if(Method.equals("POST")){
                 json = getJson(url,data);
                 jsonList = formatJson(json, name);
+            }
+            if(isMix){
+                mixJson(jsonList);
             }
             if (handler != null)
                 new MakeMessage(GET_JSON_SUCCEED, 0, 0, jsonList, handler).makeMessage();//返回JSON

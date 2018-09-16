@@ -1,6 +1,7 @@
 package sline.com.polaris;
 
 
+import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
@@ -8,16 +9,20 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.tencent.smtt.sdk.WebSettings;
 import com.tencent.smtt.sdk.WebView;
 import com.tencent.smtt.sdk.WebViewClient;
 
@@ -25,15 +30,14 @@ import jp.wasabeef.glide.transformations.BlurTransformation;
 import sline.com.polaris.utils.X5WebView;
 
 
-/**
- * A simple {@link Fragment} subclass.
- */
+
 public class VideoPlayFragment extends Fragment {
     private X5WebView webView;
     private String video, image;
-    private ImageView imageView;
-    private FrameLayout frameLayout;
+    private ImageView imageView, playIcon;
+    private RelativeLayout startPlay;
     private SimpleTarget<GlideDrawable> myTarget;
+    private ProgressBar progressBar;
 
     public VideoPlayFragment() {
         // Required empty public constructor
@@ -44,22 +48,25 @@ public class VideoPlayFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view=inflater.inflate(R.layout.fragment_video_play, container, false);
-        initView(view,getArguments());
+        View view = inflater.inflate(R.layout.fragment_video_play, container, false);
+        initView(view, getArguments());
         return view;
     }
 
-    private void initView(View view,Bundle bundle){
-        imageView=view.findViewById(R.id.VideoPlay_x5_img);
-        frameLayout=view.findViewById(R.id.body_fragment);
-        video = bundle.getString("url") +bundle.getString("videoPath") + bundle.getString("video_name");
-        image = bundle.getString("url") + bundle.getString("imagePath") +bundle.getString("image_name");
-        webView = (X5WebView) view.findViewById(R.id.web_filechooser);
-        myTarget=new MySimpleTarget<GlideDrawable>(imageView,webView);
+    @SuppressLint("ClickableViewAccessibility")
+    private void initView(View view, Bundle bundle) {
+        imageView = view.findViewById(R.id.VideoPlay_x5_img);
+        startPlay = view.findViewById(R.id.startplay);
+        playIcon = view.findViewById(R.id.playIcon);
+        progressBar=view.findViewById(R.id.wait);
+        video = bundle.getString("url") + bundle.getString("videoPath") + bundle.getString("video_name");
+        image = bundle.getString("url") + bundle.getString("imagePath") + bundle.getString("image_name");
+        webView = (X5WebView) view.findViewById(R.id.webview);
+        myTarget = new MySimpleTarget<GlideDrawable>(imageView, startPlay);
         Glide.with(this)
-                .load("http://"+image)
+                .load("http://" + image)
                 .error(R.mipmap.background)
-                .bitmapTransform(new BlurTransformation(getContext(),50))
+                .bitmapTransform(new BlurTransformation(getContext(), 50))
                 .skipMemoryCache(true)
                 .diskCacheStrategy(DiskCacheStrategy.SOURCE).into(myTarget);
         webView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -68,11 +75,20 @@ public class VideoPlayFragment extends Fragment {
                 return true;
             }
         });
-//        getWindow().setFormat(PixelFormat.TRANSLUCENT);
         webView.getView().setOverScrollMode(View.OVER_SCROLL_ALWAYS);
-        webView.setWebViewClient(new MyClient());
         webView.loadDataWithBaseURL(null, html(), "text/html", "utf-8", null);
+
+        webView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                playIcon.setVisibility(View.GONE);
+                webView.getLayoutParams().height=webView.getHeight();
+                webView.setOnTouchListener(null);
+                return false;
+            }
+        });
     }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         // TODO Auto-generated method stub
@@ -105,24 +121,21 @@ public class VideoPlayFragment extends Fragment {
                 "    <meta name=\"viewport\" content=\"width=device-width, maximum-scale=1, minimum-scale=1, user-scale=1\">\n" +
                 "    <title>" + video.substring(video.lastIndexOf("/") + 1, video.lastIndexOf(".")) + "</title>\n" +
                 "</head>\n" +
-                "<body style=\"margin: 0px;padding: 0px\">\n" +
-                "        <video style=\"margin: 0px;padding: 0px;width:100%; height: auto;display: block;\" controls  poster=\"http://" + image + "\">\n" +
+                "<body style=\"margin: 0px;padding: 0px;background:#000000\">\n" +
+                "        <video id=\"video\" onclick=\"play()\" style=\"margin: 0px;padding: 0px;width:100%; height: auto;display: block;\"poster=\"http://" + image + "\">\n" +
                 "           <source src=http://" + video + ">\n" +
                 "        </video>\n" +
+                "\t<script type=\"text/javascript\">\n" +
+                "window.onload=function() {\n" +
+                "\tDocument.getElementById('video').play();\n" +
+                "}\n" +
+                "\t</script>" +
                 "</body>\n" +
                 "\n" +
                 "</html>";
         return html;
     }
 
-    class MyClient extends WebViewClient {
-        @Override
-        public void onPageFinished(WebView webView, String s) {
-            super.onPageFinished(webView, s);
-            webView.getLayoutParams().height=webView.getHeight();
-//            webView.setVisibility(View.VISIBLE);
-        }
-    }
 
     class MySimpleTarget<GlideDrawable> extends SimpleTarget {
         private ImageView imageView;
@@ -137,6 +150,8 @@ public class VideoPlayFragment extends Fragment {
         public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
             imageView.setImageDrawable((Drawable) resource);
             view.setVisibility(View.VISIBLE);
+            progressBar.setVisibility(View.GONE);
+            progressBar=null;
         }
     }
 }

@@ -21,6 +21,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,6 +65,7 @@ public class videoList extends AppCompatActivity {
     private Bundle bundle;
     private VideoPlayFragment videoPlayFragment;
     private SimpleTarget<GlideDrawable> backgroundImageDrawable;
+    private ProgressBar progressBar;
 //    private Drawable drawable;
 
     private final int GET_JSON_SUCCEED = 0, GET_JSON_FAIL = 1, BEAN_DONE = 2, ITEM_CLICK = 3;
@@ -88,6 +90,7 @@ public class videoList extends AppCompatActivity {
         backGroundImage = findViewById(R.id.backGround);
         int listPort = (int) (Math.random() * backGround.length);
         listView = findViewById(R.id.videoListView);
+        progressBar=findViewById(R.id.wait);
         backgroundImageDrawable = new MySimpleTarget<GlideDrawable>(backGroundImage, listView);
         Glide.with(this)
                 .load("http://" + url + doorImagePath + backGround[listPort])
@@ -99,7 +102,7 @@ public class videoList extends AppCompatActivity {
                 .into(backgroundImageDrawable);
         myAdapter = new MyAdapter(this, list, url, imagePath, ITEM_CLICK, handler);
         listView.setAdapter(myAdapter);
-        new Thread(new DownLoadJson("http://" + url + jsonPath + "video.json", "video", "GET", handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
+        new Thread(new DownLoadJson("http://" + url + jsonPath + "video.json", "video", "GET", handler, GET_JSON_SUCCEED, GET_JSON_FAIL,false)).start();
     }
 
     private void IntentSkip(EMS ems) {
@@ -111,7 +114,7 @@ public class videoList extends AppCompatActivity {
         bundle.putString("image_name", ems.getImage());
         videoPlayFragment = new VideoPlayFragment();
         videoPlayFragment.setArguments(bundle);
-        getSupportFragmentManager().beginTransaction().replace(R.id.showFragment, videoPlayFragment).commit();
+        getSupportFragmentManager().beginTransaction().add(R.id.showFragment, videoPlayFragment).commit();
     }
 
     @Override
@@ -168,6 +171,8 @@ public class videoList extends AppCompatActivity {
         @Override
         public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
             imageView.setImageDrawable((Drawable) resource);
+            progressBar.setVisibility(View.GONE);
+            progressBar=null;
             view.setVisibility(View.VISIBLE);
         }
     }

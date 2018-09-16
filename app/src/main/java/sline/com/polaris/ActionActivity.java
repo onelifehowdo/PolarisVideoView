@@ -82,7 +82,7 @@ public class ActionActivity extends AppCompatActivity {
         myAdapter = new MyAdapter(this,jsonList);
         listView.setAdapter(myAdapter);
 //        new Thread(new DownJson("http://" + url + "/web/webpage/actionforapp.php?chose=", chose)).start();
-        new Thread(new DownLoadJson("http://" + url + "/web/webpage/actionforapp.php",chose,"chose="+chose,"POST",handler,GET_JSON_SUCCEED,GET_JSON_FAIL)).start();
+        new Thread(new DownLoadJson("http://" + url + "/web/webpage/actionforapp.php",chose,"chose="+chose,"POST",handler,GET_JSON_SUCCEED,GET_JSON_FAIL,false)).start();
     }
 
 
