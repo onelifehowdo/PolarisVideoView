@@ -37,7 +37,6 @@ public class VideoPlayFragment extends Fragment {
     private ImageView imageView, playIcon;
     private RelativeLayout startPlay;
     private SimpleTarget<GlideDrawable> myTarget;
-    private ProgressBar progressBar;
 
     public VideoPlayFragment() {
         // Required empty public constructor
@@ -58,7 +57,6 @@ public class VideoPlayFragment extends Fragment {
         imageView = view.findViewById(R.id.VideoPlay_x5_img);
         startPlay = view.findViewById(R.id.startplay);
         playIcon = view.findViewById(R.id.playIcon);
-        progressBar=view.findViewById(R.id.wait);
         video = bundle.getString("url") + bundle.getString("videoPath") + bundle.getString("video_name");
         image = bundle.getString("url") + bundle.getString("imagePath") + bundle.getString("image_name");
         webView = (X5WebView) view.findViewById(R.id.webview);
@@ -150,8 +148,6 @@ public class VideoPlayFragment extends Fragment {
         public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
             imageView.setImageDrawable((Drawable) resource);
             view.setVisibility(View.VISIBLE);
-            progressBar.setVisibility(View.GONE);
-            progressBar=null;
         }
     }
 }

@@ -66,6 +66,7 @@ public class videoList extends AppCompatActivity {
     private VideoPlayFragment videoPlayFragment;
     private SimpleTarget<GlideDrawable> backgroundImageDrawable;
     private ProgressBar progressBar;
+    private Long lastBackTime;
 //    private Drawable drawable;
 
     private final int GET_JSON_SUCCEED = 0, GET_JSON_FAIL = 1, BEAN_DONE = 2, ITEM_CLICK = 3;
@@ -81,6 +82,7 @@ public class videoList extends AppCompatActivity {
     }
 
     private void initview(Bundle bundle) {
+        lastBackTime=System.currentTimeMillis();
         url = bundle.getString("url");
         imagePath = bundle.getString("imagePath");
         videoPath = bundle.getString("videoPath");
@@ -94,7 +96,7 @@ public class videoList extends AppCompatActivity {
         backgroundImageDrawable = new MySimpleTarget<GlideDrawable>(backGroundImage, listView);
         Glide.with(this)
                 .load("http://" + url + doorImagePath + backGround[listPort])
-                .bitmapTransform(new BlurTransformation(this, 50))
+                .bitmapTransform(new BlurTransformation(this, 40))
                 .skipMemoryCache(true)
                 .diskCacheStrategy(DiskCacheStrategy.SOURCE)
                 .placeholder(null)
@@ -106,6 +108,9 @@ public class videoList extends AppCompatActivity {
     }
 
     private void IntentSkip(EMS ems) {
+        progressBar.setVisibility(View.VISIBLE);
+        listView.setVisibility(View.GONE);
+        backGroundImage.setVisibility(View.GONE);
         Bundle bundle = new Bundle();
         bundle.putString("url", url);
         bundle.putString("videoPath", videoPath);
@@ -117,16 +122,28 @@ public class videoList extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction().add(R.id.showFragment, videoPlayFragment).commit();
     }
 
+
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK && (videoPlayFragment != null)) {
+    public void onBackPressed() {
+        if(videoPlayFragment != null){
+            progressBar.setVisibility(View.GONE);
+            listView.setVisibility(View.VISIBLE);
+            backGroundImage.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().remove(videoPlayFragment).commit();
             videoPlayFragment = null;
             System.gc();
-            return true;
+            return;
         }
-        return super.onKeyDown(keyCode, event);
+        if (System.currentTimeMillis() - lastBackTime > 2000) {
+            lastBackTime = System.currentTimeMillis();
+            Toast toast = Toast.makeText(videoList.this, "再按一次退出", Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER, 0, 0);
+            toast.show();
+            return;
+        }
+        super.onBackPressed();
     }
+
 
 
     ///////////////////////////////////////////////////////////handeler////////////////////////////////////////////
@@ -170,9 +187,8 @@ public class videoList extends AppCompatActivity {
 
         @Override
         public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
-            imageView.setImageDrawable((Drawable) resource);
             progressBar.setVisibility(View.GONE);
-            progressBar=null;
+            imageView.setImageDrawable((Drawable) resource);
             view.setVisibility(View.VISIBLE);
         }
     }
