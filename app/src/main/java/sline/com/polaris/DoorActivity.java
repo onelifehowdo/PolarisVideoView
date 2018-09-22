@@ -305,10 +305,12 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 } else if (flag == 1) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
                     intent.putExtra("url", "http://" + temp);
+                    skipActivity=true;
                     startActivity(intent);
                 } else if (flag == 2) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
                     intent.putExtra("url", "https://m.baidu.com/s?from=1086k&tn=baidulocal&word=" + temp);
+                    skipActivity=true;
                     startActivity(intent);
                 }
                 break;
