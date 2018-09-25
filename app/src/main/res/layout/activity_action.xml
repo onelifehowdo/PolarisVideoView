@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#000000">
+    android:background="@color/BackgroundColor1">
 
     <ProgressBar
         android:id="@+id/wait"
@@ -14,10 +14,24 @@
         android:layout_centerInParent="true"
         android:layout_width="50dp"
         android:layout_height="50dp" />
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
     <ListView
         android:id="@+id/actionListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:divider="@null"
         android:dividerHeight="20dp"
+        android:layout_weight="1"
+        android:overScrollMode="never"/>
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:scaleType="centerInside"
+        android:padding="10dp"
+        android:src="@mipmap/logo" />
+</LinearLayout>
 </RelativeLayout>

@@ -90,7 +90,7 @@
                 android:layout_height="400dp"
                 android:layout_margin="0dp"
                 android:layout_below="@+id/setting"
-                android:visibility="invisible"
+                android:visibility="gone"
                 android:orientation="vertical">
 
                 <ImageView

@@ -1,6 +1,7 @@
 package sline.com.polaris.tools;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,7 +16,9 @@ import com.bumptech.glide.Glide;
 
 import java.util.List;
 
+import sline.com.polaris.BaseApplication;
 import sline.com.polaris.R;
+import sline.com.polaris.videoList;
 
 /**
  * Created by dell on 2018/9/8.
@@ -28,6 +31,7 @@ public class MyAdapter extends BaseAdapter {
     private int ITEM_CLICK;
     private String url,imagePath;
     private Handler handler;
+    private Typeface typeface;
 
     public MyAdapter(Context context, List<VideoBean> list,String url,String imagePath,int ITEM_CLICK,Handler handler) {
         this.list = list;
@@ -36,6 +40,7 @@ public class MyAdapter extends BaseAdapter {
         this.imagePath=imagePath;
         this.ITEM_CLICK=ITEM_CLICK;
         this.handler=handler;
+        typeface=BaseApplication.typeface;
         inflater = LayoutInflater.from(context);
     }
 
@@ -63,7 +68,9 @@ public class MyAdapter extends BaseAdapter {
             viewHolder.imgLeft = view.findViewById(R.id.ImageLift);
             viewHolder.imgRight = view.findViewById(R.id.ImageRight);
             viewHolder.tvLeft = view.findViewById(R.id.TextLeft);
+            viewHolder.tvLeft.setTypeface(typeface);
             viewHolder.tvRight = view.findViewById(R.id.TextRight);
+            viewHolder.tvRight.setTypeface(typeface);
             view.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) view.getTag();

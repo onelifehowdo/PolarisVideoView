@@ -1,5 +1,6 @@
 package sline.com.polaris.tools;
 
+import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
@@ -18,7 +19,7 @@ public class ImageCache {
 
     public ImageCache(Context context,int length) {
         this.length = length;
-        this.context=context;
+        this.context= context;
         this.imageFile=new File[length];
         this.imageCanUse=new boolean[length];
         File dir=new File(this.context.getCacheDir().toString()+"/imageCache");

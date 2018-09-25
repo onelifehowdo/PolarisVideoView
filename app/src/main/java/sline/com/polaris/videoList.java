@@ -22,6 +22,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,11 +66,10 @@ public class videoList extends AppCompatActivity {
     private Bundle bundle;
     private VideoPlayFragment videoPlayFragment;
     private SimpleTarget<GlideDrawable> backgroundImageDrawable;
-    private ProgressBar progressBar;
+    private RelativeLayout wait;
     private Long lastBackTime;
-//    private Drawable drawable;
 
-    private final int GET_JSON_SUCCEED = 0, GET_JSON_FAIL = 1, BEAN_DONE = 2, ITEM_CLICK = 3;
+    private static final int GET_JSON_SUCCEED = 0, GET_JSON_FAIL = 1, BEAN_DONE = 2, ITEM_CLICK = 3;
 
     /////////////////////////////////////////////////////////////////          Activity                ////////////////////////////////////////////////
     @Override
@@ -92,7 +92,8 @@ public class videoList extends AppCompatActivity {
         backGroundImage = findViewById(R.id.backGround);
         int listPort = (int) (Math.random() * backGround.length);
         listView = findViewById(R.id.videoListView);
-        progressBar=findViewById(R.id.wait);
+        wait=findViewById(R.id.loading);
+        ((TextView)findViewById(R.id.loadingtext)).setTypeface(BaseApplication.typeface);
         backgroundImageDrawable = new MySimpleTarget<GlideDrawable>(backGroundImage, listView);
         Glide.with(this)
                 .load("http://" + url + doorImagePath + backGround[listPort])
@@ -108,7 +109,7 @@ public class videoList extends AppCompatActivity {
     }
 
     private void IntentSkip(EMS ems) {
-        progressBar.setVisibility(View.VISIBLE);
+        wait.setVisibility(View.VISIBLE);
         listView.setVisibility(View.GONE);
         backGroundImage.setVisibility(View.GONE);
         Bundle bundle = new Bundle();
@@ -126,7 +127,7 @@ public class videoList extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(videoPlayFragment != null){
-            progressBar.setVisibility(View.GONE);
+            wait.setVisibility(View.GONE);
             listView.setVisibility(View.VISIBLE);
             backGroundImage.setVisibility(View.VISIBLE);
             getSupportFragmentManager().beginTransaction().remove(videoPlayFragment).commit();
@@ -187,7 +188,7 @@ public class videoList extends AppCompatActivity {
 
         @Override
         public void onResourceReady(Object resource, GlideAnimation glideAnimation) {
-            progressBar.setVisibility(View.GONE);
+            wait.setVisibility(View.GONE);
             imageView.setImageDrawable((Drawable) resource);
             view.setVisibility(View.VISIBLE);
         }

@@ -1,11 +1,13 @@
 package sline.com.polaris;
 
 import android.app.Application;
+import android.graphics.Typeface;
 import android.util.Log;
 
 import com.tencent.smtt.sdk.QbSdk;
 
 public class BaseApplication extends Application {
+    public static Typeface typeface;
 
     @Override
     public void onCreate() {
@@ -24,6 +26,8 @@ public class BaseApplication extends Application {
                     Log.i("Tag","加载内核成功");
             }
         });
+
+        typeface=Typeface.createFromAsset(getAssets(),"fonts/polaris.ttf");
     }
 
 }
