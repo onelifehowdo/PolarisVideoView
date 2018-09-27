@@ -9,15 +9,19 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,13 +39,15 @@ import java.util.List;
 import sline.com.polaris.tools.DownLoadJson;
 import sline.com.polaris.tools.MakeMessage;
 
-public class ActionActivity extends AppCompatActivity {
+public class ActionActivity extends AppCompatActivity implements View.OnTouchListener{
     private String url, chose;
     private List<String> jsonList = new ArrayList<String>();
     private ListView listView;
     private ProgressBar wait;
     private MyAdapter myAdapter;
-    //    private Vibrator vibrator;
+    private ImageView logo;
+    private boolean VIBRATOR_done=false;
+    private float lastBottom=0;
     private final int GET_JSON_SUCCEED = 1, GET_JSON_FAIL = 0;
 
     @SuppressLint("HandlerLeak")
@@ -53,12 +59,14 @@ public class ActionActivity extends AppCompatActivity {
                 case GET_JSON_SUCCEED: {
                     jsonList.addAll((List) msg.obj);
                     wait.setVisibility(View.GONE);
+                    logo.setImageResource(R.mipmap.logo);
                     myAdapter.notifyDataSetChanged();
                     break;
                 }
                 case GET_JSON_FAIL: {
                     jsonList.add("No Service");
                     wait.setVisibility(View.GONE);
+                    logo.setImageResource(R.mipmap.logo);
                     myAdapter.notifyDataSetChanged();
                     break;
                 }
@@ -66,6 +74,7 @@ public class ActionActivity extends AppCompatActivity {
         }
     };
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,10 +87,56 @@ public class ActionActivity extends AppCompatActivity {
         url = getIntent().getStringExtra("url");
         chose = getIntent().getStringExtra("chose");
         wait = findViewById(R.id.wait);
+        logo=findViewById(R.id.logo);
         listView = findViewById(R.id.actionListView);
         myAdapter = new MyAdapter(this, jsonList);
         listView.setAdapter(myAdapter);
+        listView.setOnTouchListener(this);
         new Thread(new DownLoadJson("http://" + url + "/web/webpage/actionforapp.php", chose, "chose=" + chose, "POST", handler, GET_JSON_SUCCEED, GET_JSON_FAIL, false)).start();
+    }
+
+    @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        switch (motionEvent.getAction()){
+            case MotionEvent.ACTION_MOVE:{
+                if(isListViewLast()){
+                    if(lastBottom==0)
+                        lastBottom=motionEvent.getY();
+                    RelativeLayout.LayoutParams LP= (RelativeLayout.LayoutParams) listView.getLayoutParams();
+                    float trans=lastBottom-motionEvent.getY(),logoAlpha,logoHeight=logo.getHeight();
+                    if(trans<=logoHeight){
+                        LP.bottomMargin = (int) trans;
+                        logoAlpha=trans/logoHeight;
+                    }
+                    else{
+                        LP.bottomMargin = (int)logoHeight;
+                        logoAlpha=1;
+                    }
+                    listView.setLayoutParams(LP);
+                    logo.setAlpha(logoAlpha);
+                }
+                break;
+            }
+            case MotionEvent.ACTION_UP:{
+                lastBottom=0;
+                RelativeLayout.LayoutParams LP= (RelativeLayout.LayoutParams) listView.getLayoutParams();
+                LP.bottomMargin=0;
+                listView.setLayoutParams(LP);
+                logo.setAlpha(0.0f);
+                break;
+            }
+        }
+        return false;
+    }
+
+    private boolean isListViewLast(){
+        boolean flag=false;
+        if(listView.getLastVisiblePosition()==(listView.getCount()-1)){
+            if((listView.getChildAt(listView.getLastVisiblePosition()-listView.getFirstVisiblePosition()).getBottom())<=listView.getBottom()){
+                flag=true;
+            }
+        }
+        return flag;
     }
 
 
@@ -124,8 +179,11 @@ public class ActionActivity extends AppCompatActivity {
                 textHolder = (TextHolder) view.getTag();
             }
             if (list.get(i).toString().contains("Error") || list.get(i).toString().contains("错误") || list.get(i).toString().contains("No Service")) {
-                ((Vibrator) getSystemService(Service.VIBRATOR_SERVICE)).vibrate(100);
                 textHolder.textView.setTextColor(Color.parseColor("#ff0000"));
+                if(!VIBRATOR_done){
+                    ((Vibrator) getSystemService(Service.VIBRATOR_SERVICE)).vibrate(100);
+                    VIBRATOR_done=true;
+                }
             }
             if(list.get(i).contains(".")) {
                 textHolder.textView.setText(list.get(i).substring(0, list.get(i).lastIndexOf(".")));
