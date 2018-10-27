@@ -308,7 +308,7 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 int flag = ip_test(temp);
                 if (flag == 0) {
                     url = temp;
-                    new Thread(new DownLoadJson("http://" + url + jsonPath + "doorImage.json", "doorImage", "GET", handler, GET_JSON_SUCCEED, GET_JSON_FAIL, true)).start();
+                    new Thread(new DownLoadJson("http://" + url + jsonPath + "doorImage.json", "getDoorImage", handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
                     input.setText("Linking...");
                 } else if (flag == 1) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);

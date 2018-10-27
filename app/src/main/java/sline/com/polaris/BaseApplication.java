@@ -7,7 +7,7 @@ import android.util.Log;
 import com.tencent.smtt.sdk.QbSdk;
 
 public class BaseApplication extends Application {
-    public static Typeface typeface;
+    public static Typeface typeface,infoTitleTypeface,infoTypeface;
 
     @Override
     public void onCreate() {
@@ -28,6 +28,8 @@ public class BaseApplication extends Application {
         });
 
         typeface=Typeface.createFromAsset(getAssets(),"fonts/polaris.ttf");
+        infoTitleTypeface=Typeface.createFromAsset(getAssets(),"fonts/POLYA.otf");
+        infoTypeface=Typeface.createFromAsset(getAssets(),"fonts/UUSUNInchike.ttf");
     }
 
 }

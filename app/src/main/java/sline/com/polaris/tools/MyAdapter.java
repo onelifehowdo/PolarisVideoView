@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
@@ -29,19 +30,60 @@ public class MyAdapter extends BaseAdapter {
     private LayoutInflater inflater;
     private Context context;
     private int ITEM_CLICK;
-    private String url,imagePath;
+    private String url, imagePath;
     private Handler handler;
     private Typeface typeface;
 
-    public MyAdapter(Context context, List<VideoBean> list,String url,String imagePath,int ITEM_CLICK,Handler handler) {
+    public MyAdapter(Context context, List<VideoBean> list, String url, String imagePath, int ITEM_CLICK, Handler handler) {
         this.list = list;
         this.context = context;
-        this.url=url;
-        this.imagePath=imagePath;
-        this.ITEM_CLICK=ITEM_CLICK;
-        this.handler=handler;
-        typeface=BaseApplication.typeface;
+        this.url = url;
+        this.imagePath = imagePath;
+        this.ITEM_CLICK = ITEM_CLICK;
+        this.handler = handler;
+        typeface = BaseApplication.typeface;
         inflater = LayoutInflater.from(context);
+    }
+
+    private void titleOff(final View view) {
+        Animation animation = AnimationUtils.loadAnimation(view.getContext(), R.anim.clickoff);
+        view.startAnimation(animation);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+    }
+    private void titleOn(final View view) {
+        Animation animation = AnimationUtils.loadAnimation(view.getContext(), R.anim.clickon);
+        view.startAnimation(animation);
+        animation.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                view.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
     }
 
     @Override
@@ -81,7 +123,7 @@ public class MyAdapter extends BaseAdapter {
         Glide.with(context).load("http://" + url + imagePath + bean.getImageLeft()).skipMemoryCache(true).into(viewHolder.imgLeft);
         viewHolder.tvLeft.setVisibility(View.INVISIBLE);
         viewHolder.tvLeft.setText(bean.getNameLeft().substring(0, bean.getNameLeft().lastIndexOf(".")));
-        if (!"NO".equals(bean.getNameRight())) {
+        if (bean.getNameRight() != null) {
             Glide.with(context).load("http://" + url + imagePath + bean.getImageRight()).skipMemoryCache(true).into(viewHolder.imgRight);
             viewHolder.tvRight.setVisibility(View.INVISIBLE);
             viewHolder.tvRight.setText(bean.getNameRight().substring(0, bean.getNameRight().lastIndexOf(".")));
@@ -94,11 +136,10 @@ public class MyAdapter extends BaseAdapter {
         viewHolder.imgLeft.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (viewHolder.tvLeft.getVisibility() == View.VISIBLE)
-                    viewHolder.tvLeft.setVisibility(View.INVISIBLE);
-                else {
-                    viewHolder.tvLeft.setVisibility(View.VISIBLE);
-                    viewHolder.tvLeft.startAnimation(AnimationUtils.loadAnimation(viewHolder.tvLeft.getContext(), R.anim.clickon));
+                if (viewHolder.tvLeft.getVisibility() == View.VISIBLE) {
+                    titleOff(viewHolder.tvLeft);
+                } else {
+                    titleOn(viewHolder.tvLeft);
                 }
             }
         });
@@ -106,11 +147,11 @@ public class MyAdapter extends BaseAdapter {
         viewHolder.imgRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (viewHolder.tvRight.getVisibility() == View.VISIBLE)
-                    viewHolder.tvRight.setVisibility(View.INVISIBLE);
+                if (viewHolder.tvRight.getVisibility() == View.VISIBLE){
+                    titleOff(viewHolder.tvRight);
+                }
                 else {
-                    viewHolder.tvRight.setVisibility(View.VISIBLE);
-                    viewHolder.tvRight.startAnimation(AnimationUtils.loadAnimation(viewHolder.tvRight.getContext(), R.anim.clickon));
+                    titleOn(viewHolder.tvRight);
                 }
             }
         });
@@ -119,22 +160,23 @@ public class MyAdapter extends BaseAdapter {
             @Override
             public void onClick(View view) {
                 viewHolder.tvLeft.setVisibility(View.INVISIBLE);
-                new MakeMessage(ITEM_CLICK,0,0,new EMS(bean.getNameLeft(),bean.getImageLeft()),handler).makeMessage();
+                new MakeMessage(ITEM_CLICK, 0, 0, new EMS(bean.getNameLeft(), bean.getImageLeft(), bean.getSizeLeft(),bean.getVideoTimeLeft()), handler).makeMessage();
             }
         });
 
         viewHolder.tvRight.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!"NO".equals(bean.getNameRight())) {
+                if (bean.getNameRight() != null) {
                     viewHolder.tvRight.setVisibility(View.INVISIBLE);
-                    new MakeMessage(ITEM_CLICK,0,0,new EMS(bean.getNameRight(),bean.getImageRight()),handler).makeMessage();
+                    new MakeMessage(ITEM_CLICK, 0, 0, new EMS(bean.getNameRight(), bean.getImageRight(), bean.getSizeRight(),bean.getVideoTimeRight()), handler).makeMessage();
                 }
             }
         });
 
         return view;
     }
+
     static class ViewHolder {
         ImageView imgLeft;
         ImageView imgRight;

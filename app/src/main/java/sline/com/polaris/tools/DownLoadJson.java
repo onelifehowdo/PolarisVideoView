@@ -28,59 +28,77 @@ import sline.com.polaris.DoorActivity;
 public class DownLoadJson implements Runnable {
 
 
-    private String url, json, name, Method,data;
+    private String url, use,postData=null;
     private Handler handler;
-    private ArrayList<String> jsonList;
-    private boolean isMix=false;
+    private ArrayList data;
     private int GET_JSON_SUCCEED, GET_JSON_FAIL;
 
-    public DownLoadJson(String url,String name, String Method, Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL,boolean isMix) {
+    public DownLoadJson(String url, String use, Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL) {
         this.url = url;
-        this.name = name;
+        this.use = use;
         this.handler = handler;
-        this.Method = Method;
         this.GET_JSON_FAIL = GET_JSON_FAIL;
         this.GET_JSON_SUCCEED = GET_JSON_SUCCEED;
-        this.isMix=isMix;
     }
-    public DownLoadJson(String url,String name,String data,String Method,  Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL,boolean isMix) {
+    public DownLoadJson(String url, String use, String postData,Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL) {
         this.url = url;
-        this.name = name;
+        this.use = use;
+        this.postData=postData;
         this.handler = handler;
-        this.Method = Method;
-        this.data=data;
         this.GET_JSON_FAIL = GET_JSON_FAIL;
         this.GET_JSON_SUCCEED = GET_JSON_SUCCEED;
-        this.isMix=isMix;
     }
-
 
     @Override
     public void run() {
-
-
         try {
-            if (Method.equals("GET")) {
-                json = getJson(url);
-                jsonList = formatJson(json, name);
-            }
-            else if(Method.equals("POST")){
-                json = getJson(url,data);
-                jsonList = formatJson(json, name);
-            }
-            if(isMix){
-                mixJson(jsonList);
+            if (use.equals("getDoorImage")) {
+                data = getDoorImage();
+            } else if (use.equals("getVideo")) {
+                data = getVideo();
+            } else if (use.equals("getdata")) {
+                data = getdata();
             }
             if (handler != null)
-                new MakeMessage(GET_JSON_SUCCEED, 0, 0, jsonList, handler).makeMessage();//返回JSON
+                new MakeMessage(GET_JSON_SUCCEED, 0, 0, data, handler).makeMessage();//返回JSON
         } catch (Exception e) {
-            e.printStackTrace();
             if (handler != null)
                 new MakeMessage(GET_JSON_FAIL, 0, 0, null, handler).makeMessage();//网络失败改变文字
         }
+    }
 
+    private ArrayList getDoorImage() throws Exception {
+        String json;
+        ArrayList<String> doorImageJson = new ArrayList<>();
+        json = getJson(url);
+        JSONArray jsonArray = new JSONArray(json);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            doorImageJson.add(jsonArray.getString(i));
+        }
+        mixJson(doorImageJson);
+        return doorImageJson;
+    }
 
+    private ArrayList getVideo() throws Exception {
+        String json;
+        ArrayList videoList = new ArrayList<>();
+        json = getJson(url);
+        JSONArray jsonArray = new JSONArray(json);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            videoList.add(jsonArray.getJSONObject(i));
+        }
+        return videoList;
+    }
 
+    private ArrayList getdata() throws Exception {
+        String json;
+        ArrayList updata = new ArrayList<>();
+        json = getJson(url, "chose="+postData);
+        JSONArray jsonArray = new JSONArray(json);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            updata.add(jsonArray.getString(i));
+        }
+        return updata;
     }
 
     private String getJson(String url) throws Exception {
@@ -97,7 +115,6 @@ public class DownLoadJson implements Runnable {
                 json += line;
             }
         } catch (Exception e) {
-            Log.i("Tag", "网络失败");
             throw e;
         } finally {
             if (bufferedReader != null)
@@ -113,7 +130,7 @@ public class DownLoadJson implements Runnable {
     }
 
     public String getJson(String url, String data) throws Exception {
-        HttpURLConnection connection=null;
+        HttpURLConnection connection = null;
         BufferedWriter bufferedWriter = null;
         BufferedReader bufferedReader = null;
         try {
@@ -155,14 +172,14 @@ public class DownLoadJson implements Runnable {
         }
     }
 
-    private ArrayList<String> formatJson(String json, String name) throws Exception {
-        ArrayList<String> jsonList = new ArrayList<>();
-        JSONObject jsonObject;
-        jsonObject = new JSONObject(json);
-        JSONArray jsonArray = jsonObject.getJSONArray(name);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            jsonList.add(jsonArray.getString(i));
-        }
-        return jsonList;
-    }
+//    private ArrayList<String> formatJson(String json, String name) throws Exception {
+//        ArrayList<String> jsonList = new ArrayList<>();
+//        JSONObject jsonObject;
+//        jsonObject = new JSONObject(json);
+//        JSONArray jsonArray = jsonObject.getJSONArray(name);
+//        for (int i = 0; i < jsonArray.length(); i++) {
+//            jsonList.add(jsonArray.getString(i));
+//        }
+//        return jsonList;
+//    }
 }

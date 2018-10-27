@@ -92,7 +92,7 @@ public class ActionActivity extends AppCompatActivity implements View.OnTouchLis
         myAdapter = new MyAdapter(this, jsonList);
         listView.setAdapter(myAdapter);
         listView.setOnTouchListener(this);
-        new Thread(new DownLoadJson("http://" + url + "/web/webpage/actionforapp.php", chose, "chose=" + chose, "POST", handler, GET_JSON_SUCCEED, GET_JSON_FAIL, false)).start();
+        new Thread(new DownLoadJson("http://" + url + "/web/webpage/actionforapp.php","getdata",chose,handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
     }
 
     @Override

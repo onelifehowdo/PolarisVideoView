@@ -5,11 +5,16 @@ package sline.com.polaris.tools;
  */
 
 public class EMS {
-    String video,image;
+    String video, image;
+    Double size;
+    Long downloadTime;
 
-    public EMS(String video, String image) {
+    public EMS(String video, String image, Double size, Long downloadTime) {
         this.video = video;
         this.image = image;
+        this.size = size;
+        this.downloadTime=downloadTime;
+
     }
 
     public String getVideo() {
@@ -18,5 +23,13 @@ public class EMS {
 
     public String getImage() {
         return image;
+    }
+
+    public Double getSize() {
+        return size;
+    }
+
+    public Long getDownloadTime() {
+        return downloadTime;
     }
 }

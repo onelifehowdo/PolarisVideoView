@@ -23,6 +23,7 @@
 
     <style name="VideoListThem" parent="AppTheme">
         <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
         <item name="windowActionBar">false</item>
         <item name="android:windowBackground">@color/BackgroundColor1</item>
     </style>

@@ -105,7 +105,7 @@ public class videoList extends AppCompatActivity {
                 .into(backgroundImageDrawable);
         myAdapter = new MyAdapter(this, list, url, imagePath, ITEM_CLICK, handler);
         listView.setAdapter(myAdapter);
-        new Thread(new DownLoadJson("http://" + url + jsonPath + "video.json", "video", "GET", handler, GET_JSON_SUCCEED, GET_JSON_FAIL,false)).start();
+        new Thread(new DownLoadJson("http://" + url + jsonPath + "video.json", "getVideo",handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
     }
 
     private void IntentSkip(EMS ems) {
@@ -116,8 +116,10 @@ public class videoList extends AppCompatActivity {
         bundle.putString("url", url);
         bundle.putString("videoPath", videoPath);
         bundle.putString("imagePath", imagePath);
-        bundle.putString("video_name", ems.getVideo());
-        bundle.putString("image_name", ems.getImage());
+        bundle.putString("videoName", ems.getVideo());
+        bundle.putString("imageName", ems.getImage());
+        bundle.putDouble("videoSize", ems.getSize());
+        bundle.putLong("downloadTime",ems.getDownloadTime());
         videoPlayFragment = new VideoPlayFragment();
         videoPlayFragment.setArguments(bundle);
         getSupportFragmentManager().beginTransaction().add(R.id.showFragment, videoPlayFragment).commit();

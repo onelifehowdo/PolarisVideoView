@@ -2,35 +2,51 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <ImageView
         android:id="@+id/VideoPlay_x5_img"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scaleType="centerCrop"/>
-    <FrameLayout android:layout_height="match_parent"
+        android:scaleType="centerCrop" />
+
+    <FrameLayout
+        android:id="@+id/frame_web_video"
         android:layout_width="match_parent"
-        android:id="@+id/frame_web_video">
-    </FrameLayout>
+        android:layout_height="match_parent"></FrameLayout>
 
     <RelativeLayout
+        android:id="@+id/startplay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/startplay"
+        android:background="#80000000"
         android:visibility="invisible">
-        <sline.com.polaris.utils.X5WebView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/webview"
-            android:background="@color/BackgroundColor1"
-            android:layout_centerInParent="true">
-        </sline.com.polaris.utils.X5WebView >
-    <ImageView
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:scaleType="fitCenter"
-        android:layout_centerInParent="true"
-        android:id="@+id/playIcon"
-        android:src="@mipmap/play"/>
+
+            <TextView
+                android:id="@+id/infoTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:textAlignment="center"
+                android:text="information"
+                android:textColor="#ffffff"
+                android:textSize="40dp" />
+
+            <sline.com.polaris.utils.X5WebView
+                android:id="@+id/webview"
+                android:layout_width="match_parent"
+                android:layout_centerInParent="true"
+                android:layout_height="wrap_content">
+            </sline.com.polaris.utils.X5WebView>
+
+            <TextView
+                android:id="@+id/info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/webview"
+                android:paddingLeft="20dp"
+                android:paddingTop="20dp"
+                android:textColor="#80ffffff"
+                android:textSize="25dp" />
     </RelativeLayout>
 
 

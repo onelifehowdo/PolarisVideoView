@@ -4,6 +4,7 @@ package sline.com.polaris;
 import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
+import java.text.SimpleDateFormat;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -16,6 +17,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -34,9 +36,10 @@ import sline.com.polaris.utils.X5WebView;
 public class VideoPlayFragment extends Fragment {
     private X5WebView webView;
     private String video, image;
-    private ImageView imageView, playIcon;
+    private ImageView imageView;
     private RelativeLayout startPlay;
     private SimpleTarget<GlideDrawable> myTarget;
+    private TextView info,inforTitle;
 
     public VideoPlayFragment() {
         // Required empty public constructor
@@ -56,9 +59,14 @@ public class VideoPlayFragment extends Fragment {
     private void initView(View view, Bundle bundle) {
         imageView = view.findViewById(R.id.VideoPlay_x5_img);
         startPlay = view.findViewById(R.id.startplay);
-        playIcon = view.findViewById(R.id.playIcon);
-        video = bundle.getString("url") + bundle.getString("videoPath") + bundle.getString("video_name");
-        image = bundle.getString("url") + bundle.getString("imagePath") + bundle.getString("image_name");
+//        playIcon = view.findViewById(R.id.playIcon);
+        info=view.findViewById(R.id.info);
+        inforTitle=view.findViewById(R.id.infoTitle);
+        video = bundle.getString("url") + bundle.getString("videoPath") + bundle.getString("videoName");
+        image = bundle.getString("url") + bundle.getString("imagePath") + bundle.getString("imageName");
+        info.setTypeface(BaseApplication.infoTypeface);
+        inforTitle.setTypeface(BaseApplication.infoTitleTypeface);
+        info.setText(bundle.getString("videoName").substring(0,bundle.getString("videoName").lastIndexOf("."))+"\r\n"+getTime(bundle.getLong("downloadTime")*1000)+"\r\n"+getSize(bundle.getDouble("videoSize")));
         webView = (X5WebView) view.findViewById(R.id.webview);
         myTarget = new MySimpleTarget<GlideDrawable>(imageView, startPlay);
         Glide.with(this)
@@ -79,7 +87,7 @@ public class VideoPlayFragment extends Fragment {
         webView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                playIcon.setVisibility(View.GONE);
+//                playIcon.setVisibility(View.GONE);
                 webView.getLayoutParams().height=webView.getHeight();
                 webView.setOnTouchListener(null);
                 return false;
@@ -102,7 +110,19 @@ public class VideoPlayFragment extends Fragment {
         }
 
     }
-
+    public String getTime(Long date) {
+        SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd");
+        return (simpleDateFormat.format(date));
+    }
+    public String getSize(Double num) {
+        String[] size= {"B","KB","MB","GB","TB","PB"};
+        int i=0;
+        while(num>=1024) {
+            num=num/1024;
+            i++;
+        }
+        return String.format("%.2f ",num)+size[i];
+    }
     public String html() {
         String html;
         html = "<!DOCTYPE html>\n" +
@@ -133,7 +153,6 @@ public class VideoPlayFragment extends Fragment {
                 "</html>";
         return html;
     }
-
 
     class MySimpleTarget<GlideDrawable> extends SimpleTarget {
         private ImageView imageView;
