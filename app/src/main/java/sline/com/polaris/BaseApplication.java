@@ -29,7 +29,7 @@ public class BaseApplication extends Application {
 
         typeface=Typeface.createFromAsset(getAssets(),"fonts/polaris.ttf");
         infoTitleTypeface=Typeface.createFromAsset(getAssets(),"fonts/POLYA.otf");
-        infoTypeface=Typeface.createFromAsset(getAssets(),"fonts/UUSUNInchike.ttf");
+        infoTypeface=Typeface.createFromAsset(getAssets(), "fonts/UUSUN.ttf");
     }
 
 }
