@@ -59,11 +59,10 @@ public class VideoPlayFragment extends Fragment {
     private void initView(View view, Bundle bundle) {
         imageView = view.findViewById(R.id.VideoPlay_x5_img);
         startPlay = view.findViewById(R.id.startplay);
-//        playIcon = view.findViewById(R.id.playIcon);
         info=view.findViewById(R.id.info);
         inforTitle=view.findViewById(R.id.infoTitle);
-        video = bundle.getString("url") + bundle.getString("videoPath") + bundle.getString("videoName");
-        image = bundle.getString("url") + bundle.getString("imagePath") + bundle.getString("imageName");
+        video = BaseApplication.url+"/"+BaseApplication.videoPath+"/" + bundle.getString("videoName");
+        image = BaseApplication.url+"/"+BaseApplication.imagePath+"/" + bundle.getString("imageName");
         info.setTypeface(BaseApplication.infoTypeface);
         inforTitle.setTypeface(BaseApplication.infoTitleTypeface);
         info.setText(bundle.getString("videoName").substring(0,bundle.getString("videoName").lastIndexOf("."))+"\r\n"+getTime(bundle.getLong("downloadTime")*1000)+"\r\n"+getSize(bundle.getDouble("videoSize")));
@@ -87,7 +86,6 @@ public class VideoPlayFragment extends Fragment {
         webView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-//                playIcon.setVisibility(View.GONE);
                 webView.getLayoutParams().height=webView.getHeight();
                 webView.setOnTouchListener(null);
                 return false;

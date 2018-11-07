@@ -8,6 +8,7 @@ import com.tencent.smtt.sdk.QbSdk;
 
 public class BaseApplication extends Application {
     public static Typeface typeface,infoTitleTypeface,infoTypeface;
+    public static String url,videoPath,imagePath;
 
     @Override
     public void onCreate() {

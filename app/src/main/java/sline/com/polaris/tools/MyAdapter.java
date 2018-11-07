@@ -30,15 +30,14 @@ public class MyAdapter extends BaseAdapter {
     private LayoutInflater inflater;
     private Context context;
     private int ITEM_CLICK;
-    private String url, imagePath;
+    private String url;
     private Handler handler;
     private Typeface typeface;
 
-    public MyAdapter(Context context, List<VideoBean> list, String url, String imagePath, int ITEM_CLICK, Handler handler) {
+    public MyAdapter(Context context, List<VideoBean> list, String url, int ITEM_CLICK, Handler handler) {
         this.list = list;
         this.context = context;
         this.url = url;
-        this.imagePath = imagePath;
         this.ITEM_CLICK = ITEM_CLICK;
         this.handler = handler;
         typeface = BaseApplication.typeface;
@@ -120,11 +119,11 @@ public class MyAdapter extends BaseAdapter {
 
 
         final VideoBean bean = list.get(i);
-        Glide.with(context).load("http://" + url + imagePath + bean.getImageLeft()).skipMemoryCache(true).into(viewHolder.imgLeft);
+        Glide.with(context).load("http://" + url + "/"+BaseApplication.imagePath + "/"+ bean.getImageLeft()).skipMemoryCache(true).into(viewHolder.imgLeft);
         viewHolder.tvLeft.setVisibility(View.INVISIBLE);
         viewHolder.tvLeft.setText(bean.getNameLeft().substring(0, bean.getNameLeft().lastIndexOf(".")));
         if (bean.getNameRight() != null) {
-            Glide.with(context).load("http://" + url + imagePath + bean.getImageRight()).skipMemoryCache(true).into(viewHolder.imgRight);
+            Glide.with(context).load("http://" + url + "/"+ BaseApplication.imagePath + "/"+ bean.getImageRight()).skipMemoryCache(true).into(viewHolder.imgRight);
             viewHolder.tvRight.setVisibility(View.INVISIBLE);
             viewHolder.tvRight.setText(bean.getNameRight().substring(0, bean.getNameRight().lastIndexOf(".")));
         } else {

@@ -26,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -57,7 +58,12 @@ public class ActionActivity extends AppCompatActivity implements View.OnTouchLis
             super.handleMessage(msg);
             switch (msg.what) {
                 case GET_JSON_SUCCEED: {
-                    jsonList.addAll((List) msg.obj);
+                    try {
+                        jsonList.addAll(decodeDataJSON((String) msg.obj));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        new MakeMessage(GET_JSON_FAIL, 0, 0, null, handler).makeMessage();//网络失败改变文字
+                    }
                     wait.setVisibility(View.GONE);
                     logo.setImageResource(R.mipmap.logo);
                     myAdapter.notifyDataSetChanged();
@@ -84,7 +90,7 @@ public class ActionActivity extends AppCompatActivity implements View.OnTouchLis
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_action);
-        url = getIntent().getStringExtra("url");
+        url = BaseApplication.url;
         chose = getIntent().getStringExtra("chose");
         wait = findViewById(R.id.wait);
         logo=findViewById(R.id.logo);
@@ -139,6 +145,14 @@ public class ActionActivity extends AppCompatActivity implements View.OnTouchLis
         return flag;
     }
 
+    private List<String> decodeDataJSON(String json) throws JSONException {
+        List<String> jsonList=new ArrayList<>();
+        JSONArray jsonArray=new JSONArray(json);
+        for(int i=0;i<jsonArray.length();i++){
+            jsonList.add(jsonArray.getString(i));
+        }
+        return jsonList;
+    }
 
 /////////////////////////////////////////适配器///////////////////////////////////////////
 
@@ -178,7 +192,7 @@ public class ActionActivity extends AppCompatActivity implements View.OnTouchLis
             } else {
                 textHolder = (TextHolder) view.getTag();
             }
-            if (list.get(i).toString().contains("Error") || list.get(i).toString().contains("错误") || list.get(i).toString().contains("No Service")) {
+            if (list.get(i).contains("Error") || list.get(i).contains("错误") || list.get(i).contains("No Service")) {
                 textHolder.textView.setTextColor(Color.parseColor("#ff0000"));
                 if(!VIBRATOR_done){
                     ((Vibrator) getSystemService(Service.VIBRATOR_SERVICE)).vibrate(100);

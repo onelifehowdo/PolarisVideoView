@@ -38,7 +38,7 @@ public class ImageCache {
             File cache = new File(this.context.getCacheDir().toString()+"/imageCache");
             String[] list = cache.list();
             for (int i = 0; i < list.length; i++) {
-                new File(this.context.getCacheDir().toString()+"/imageCache/" + list[i].toString()).delete();
+                new File(this.context.getCacheDir().toString()+"/imageCache/" + list[i]).delete();
             }
         } catch (NullPointerException e) {
            Log.i("tag","没有缓存清理");

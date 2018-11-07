@@ -55,8 +55,6 @@ import sline.com.polaris.tools.VideoBean;
 public class videoList extends AppCompatActivity {
     private List<VideoBean> list = new ArrayList<>();
     private String url;
-    private String videoPath;
-    private String imagePath;
     private String doorImagePath;
     private String jsonPath;
     private ListView listView;
@@ -83,9 +81,7 @@ public class videoList extends AppCompatActivity {
 
     private void initview(Bundle bundle) {
         lastBackTime=System.currentTimeMillis();
-        url = bundle.getString("url");
-        imagePath = bundle.getString("imagePath");
-        videoPath = bundle.getString("videoPath");
+        url = BaseApplication.url;
         jsonPath = bundle.getString("jsonPath");
         doorImagePath = bundle.getString("doorImagePath");
         backGround = bundle.getStringArray("doorList");
@@ -103,7 +99,7 @@ public class videoList extends AppCompatActivity {
                 .placeholder(null)
                 .error(R.mipmap.background)
                 .into(backgroundImageDrawable);
-        myAdapter = new MyAdapter(this, list, url, imagePath, ITEM_CLICK, handler);
+        myAdapter = new MyAdapter(this, list, url,ITEM_CLICK, handler);
         listView.setAdapter(myAdapter);
         new Thread(new DownLoadJson("http://" + url + jsonPath + "video.json", "getVideo",handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
     }
@@ -113,9 +109,6 @@ public class videoList extends AppCompatActivity {
         listView.setVisibility(View.GONE);
         backGroundImage.setVisibility(View.GONE);
         Bundle bundle = new Bundle();
-        bundle.putString("url", url);
-        bundle.putString("videoPath", videoPath);
-        bundle.putString("imagePath", imagePath);
         bundle.putString("videoName", ems.getVideo());
         bundle.putString("imageName", ems.getImage());
         bundle.putDouble("videoSize", ems.getSize());
@@ -125,6 +118,17 @@ public class videoList extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction().add(R.id.showFragment, videoPlayFragment).commit();
     }
 
+    private ArrayList decodeVideoJSON(String json)throws JSONException{
+        ArrayList videoList = new ArrayList<>();
+        JSONObject jsonObject=new JSONObject(json);
+        BaseApplication.imagePath=jsonObject.getString("imagePath");
+        BaseApplication.videoPath=jsonObject.getString("videoPath");
+        JSONArray jsonArray =jsonObject.getJSONArray("data");
+        for (int i = 0; i < jsonArray.length(); i++) {
+            videoList.add(jsonArray.getJSONObject(i));
+        }
+        return videoList;
+    }
 
     @Override
     public void onBackPressed() {
@@ -166,7 +170,12 @@ public class videoList extends AppCompatActivity {
                     break;
                 }
                 case GET_JSON_SUCCEED: {
-                    new Thread(new BeanCreater((List) msg.obj, handler, BEAN_DONE)).start();
+                    try {
+                        new Thread(new BeanCreater(decodeVideoJSON((String)msg.obj), handler, BEAN_DONE)).start();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        new MakeMessage(GET_JSON_FAIL, 0, 0, null, handler).makeMessage();//网络失败改变文字
+                    }
                     break;
                 }
                 case GET_JSON_FAIL: {

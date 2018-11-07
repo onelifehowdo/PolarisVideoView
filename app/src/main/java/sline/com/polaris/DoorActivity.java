@@ -30,6 +30,10 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -51,11 +55,9 @@ import sline.com.polaris.tools.MakeMessage;
 public class DoorActivity extends AppCompatActivity implements View.OnClickListener, View.OnLongClickListener, View.OnTouchListener {
 
     private String url;
-    private String videoPath = "/web/video/";
-    private String imagePath = "/web/image/videoimage/";
     private String doorImagePath = "/web/image/doorimage/";
     private String jsonPath = "/web/js/";
-    private List<String> doorList = new ArrayList<String>();
+    private List<String> doorList = new ArrayList();
     private ImageView DoorImage, switcher, delCache, index, cloud, setting, updata, shutdown, restart, cancel, returndata;
     private RelativeLayout firstLayout, doorLayout;
     private LinearLayout toolsBar;
@@ -283,9 +285,6 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 Intent intent = new Intent(DoorActivity.this, videoList.class);
                 Bundle bundle = new Bundle();
-                bundle.putString("url", url);
-                bundle.putString("imagePath", imagePath);
-                bundle.putString("videoPath", videoPath);
                 bundle.putString("jsonPath", jsonPath);
                 bundle.putString("doorImagePath", doorImagePath);
                 bundle.putStringArray("doorList", doorList.toArray(new String[doorList.size()]));
@@ -307,8 +306,9 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
                 progressBar.setVisibility(View.VISIBLE);
                 int flag = ip_test(temp);
                 if (flag == 0) {
-                    url = temp;
-                    new Thread(new DownLoadJson("http://" + url + jsonPath + "doorImage.json", "getDoorImage", handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
+                    BaseApplication.url = temp;
+                    url=BaseApplication.url;
+                    new Thread(new DownLoadJson("http://" + BaseApplication.url + jsonPath + "doorImage.json", "getDoorImage", handler, GET_JSON_SUCCEED, GET_JSON_FAIL)).start();
                     input.setText("Linking...");
                 } else if (flag == 1) {
                     Intent intent = new Intent(DoorActivity.this, WebPage.class);
@@ -325,35 +325,30 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
             }
             case R.id.updata: {
                 Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
-                intent.putExtra("url", url);
                 intent.putExtra("chose", "updata");
                 startActivity(intent);
                 break;
             }
             case R.id.shutdown: {
                 Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
-                intent.putExtra("url", url);
                 intent.putExtra("chose", "shutdown");
                 startActivity(intent);
                 break;
             }
             case R.id.restart: {
                 Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
-                intent.putExtra("url", url);
                 intent.putExtra("chose", "restart");
                 startActivity(intent);
                 break;
             }
             case R.id.cancel: {
                 Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
-                intent.putExtra("url", url);
                 intent.putExtra("chose", "cancel");
                 startActivity(intent);
                 break;
             }
             case R.id.returndata: {
                 Intent intent = new Intent(DoorActivity.this, ActionActivity.class);
-                intent.putExtra("url", url);
                 intent.putExtra("chose", "return");
                 startActivity(intent);
                 break;
@@ -552,15 +547,37 @@ public class DoorActivity extends AppCompatActivity implements View.OnClickListe
         drawablePort++;
         drawablePort = drawablePort % imageCache.length;
         int testPort = (drawablePort + imageCache.length - 2) % imageCache.length;
-        new Thread(new DoorImageDown("http://" + url + doorImagePath + doorList.get(downPort).toString(), testPort)).start();
+        new Thread(new DoorImageDown("http://" + url + doorImagePath + doorList.get(downPort), testPort)).start();
     }
 
+    private List<String> decodeDoorImageJson(String json) throws JSONException {
+        List<String> jsonList=new ArrayList<>();
+        JSONArray jsonArray = new JSONArray(json);
+        for (int i = 0; i < jsonArray.length(); i++) {
+            jsonList.add(jsonArray.getString(i));
+        }
+        for (int i = 0; i < jsonList.size() - 1; i++) {
+            int index;
+            String temp;
+            index = (int) (Math.random() * (jsonList.size() - i)) + i;
+            temp = jsonList.get(i);
+            jsonList.set(i, jsonList.get(index));
+            jsonList.set(index, temp);
+        }
+        return jsonList;
+    }
     private void initDoorLayout(Message msg) {
         imageCache = new ImageCache(getApplicationContext(), 8);
-        doorList.addAll((List<String>) msg.obj);
-        DoorImageSize = ((List) msg.obj).size();
+        try {
+            doorList.addAll(decodeDoorImageJson((String) msg.obj));
+        } catch (JSONException e) {
+            e.printStackTrace();
+            new MakeMessage(GET_JSON_FAIL, 0, 0, null, handler).makeMessage();//网络失败改变文字
+            return;
+        }
+        DoorImageSize = doorList.size();
         for (int i = 0; i < imageCache.length; i++) {
-            new Thread(new DoorImageDown("http://" + url + doorImagePath + ((List) msg.obj).get(i).toString(), i)).start();
+            new Thread(new DoorImageDown("http://" + url+ doorImagePath + doorList.get(i), i)).start();
         }
         animationOpen = AnimationUtils.loadAnimation(this, R.anim.toolsbaropen);
         animationClose = AnimationUtils.loadAnimation(this, R.anim.toolsbarclose);

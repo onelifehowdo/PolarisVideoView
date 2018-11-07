@@ -28,9 +28,10 @@ import sline.com.polaris.DoorActivity;
 public class DownLoadJson implements Runnable {
 
 
-    private String url, use,postData=null;
+    private String url, use, postData = null;
     private Handler handler;
-    private ArrayList data;
+    //    private ArrayList data;
+    private String json;
     private int GET_JSON_SUCCEED, GET_JSON_FAIL;
 
     public DownLoadJson(String url, String use, Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL) {
@@ -40,10 +41,11 @@ public class DownLoadJson implements Runnable {
         this.GET_JSON_FAIL = GET_JSON_FAIL;
         this.GET_JSON_SUCCEED = GET_JSON_SUCCEED;
     }
-    public DownLoadJson(String url, String use, String postData,Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL) {
+
+    public DownLoadJson(String url, String use, String postData, Handler handler, int GET_JSON_SUCCEED, int GET_JSON_FAIL) {
         this.url = url;
         this.use = use;
-        this.postData=postData;
+        this.postData = postData;
         this.handler = handler;
         this.GET_JSON_FAIL = GET_JSON_FAIL;
         this.GET_JSON_SUCCEED = GET_JSON_SUCCEED;
@@ -53,52 +55,18 @@ public class DownLoadJson implements Runnable {
     public void run() {
         try {
             if (use.equals("getDoorImage")) {
-                data = getDoorImage();
+                json = getJson(url);
             } else if (use.equals("getVideo")) {
-                data = getVideo();
+                json = getJson(url);
             } else if (use.equals("getdata")) {
-                data = getdata();
+                json = getJson(url, "chose=" + postData);
             }
             if (handler != null)
-                new MakeMessage(GET_JSON_SUCCEED, 0, 0, data, handler).makeMessage();//返回JSON
+                new MakeMessage(GET_JSON_SUCCEED, 0, 0, json, handler).makeMessage();//返回JSON
         } catch (Exception e) {
             if (handler != null)
                 new MakeMessage(GET_JSON_FAIL, 0, 0, null, handler).makeMessage();//网络失败改变文字
         }
-    }
-
-    private ArrayList getDoorImage() throws Exception {
-        String json;
-        ArrayList<String> doorImageJson = new ArrayList<>();
-        json = getJson(url);
-        JSONArray jsonArray = new JSONArray(json);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            doorImageJson.add(jsonArray.getString(i));
-        }
-        mixJson(doorImageJson);
-        return doorImageJson;
-    }
-
-    private ArrayList getVideo() throws Exception {
-        String json;
-        ArrayList videoList = new ArrayList<>();
-        json = getJson(url);
-        JSONArray jsonArray = new JSONArray(json);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            videoList.add(jsonArray.getJSONObject(i));
-        }
-        return videoList;
-    }
-
-    private ArrayList getdata() throws Exception {
-        String json;
-        ArrayList updata = new ArrayList<>();
-        json = getJson(url, "chose="+postData);
-        JSONArray jsonArray = new JSONArray(json);
-        for (int i = 0; i < jsonArray.length(); i++) {
-            updata.add(jsonArray.getString(i));
-        }
-        return updata;
     }
 
     private String getJson(String url) throws Exception {
@@ -161,25 +129,5 @@ public class DownLoadJson implements Runnable {
 
     }
 
-    private void mixJson(ArrayList<String> jsonList) {
-        for (int i = 0; i < jsonList.size() - 1; i++) {
-            int index;
-            String temp;
-            index = (int) (Math.random() * (jsonList.size() - i)) + i;
-            temp = jsonList.get(i);
-            jsonList.set(i, jsonList.get(index));
-            jsonList.set(index, temp);
-        }
-    }
 
-//    private ArrayList<String> formatJson(String json, String name) throws Exception {
-//        ArrayList<String> jsonList = new ArrayList<>();
-//        JSONObject jsonObject;
-//        jsonObject = new JSONObject(json);
-//        JSONArray jsonArray = jsonObject.getJSONArray(name);
-//        for (int i = 0; i < jsonArray.length(); i++) {
-//            jsonList.add(jsonArray.getString(i));
-//        }
-//        return jsonList;
-//    }
 }
